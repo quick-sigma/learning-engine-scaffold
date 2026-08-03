@@ -1,0 +1,30 @@
+<section aria-label="Lecciones">
+  <h1>Lecciones</h1>
+  {% if lessons %}
+    <ul class="lesson-list">
+      {% for l in lessons %}
+        <li class="lesson-card">
+          <div class="lesson-card-head">
+            <span class="badge">{{ l.id }}</span>
+            <h2>{{ l.title }}</h2>
+            <span class="mastery" data-mastery="{{ l.mastery }}">{{ l.mastery }}%</span>
+          </div>
+          <p class="meta">
+            {{ l.slides }} slides ·
+            {% if l.has_content %}contenido listo{% else %}pendiente de generar{% endif %}
+            {% if l.updated %} · actualizada {{ l.updated }}{% endif %}
+          </p>
+          <div class="lesson-actions">
+            {% if l.has_content %}
+              <a class="btn" href="/lessons/{{ l.id }}">Abrir en reveal.js</a>
+            {% else %}
+              <span class="muted">Pídele a opencode que genere esta lección</span>
+            {% endif %}
+          </div>
+        </li>
+      {% endfor %}
+    </ul>
+  {% else %}
+    <p class="empty">Aún no hay lecciones. Pídele a opencode que genere la primera.</p>
+  {% endif %}
+</section>

@@ -1,0 +1,246 @@
+:root {
+  --bg: #fafafa;
+  --surface: #ffffff;
+  --border: #e5e5e5;
+  --text: #1a1a1a;
+  --muted: #6b6b6b;
+  --accent: #2563eb;
+  --accent-contrast: #ffffff;
+  --ok: #15803d;
+  --ko: #b91c1c;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.06), 0 1px 6px rgba(0, 0, 0, 0.04);
+  --radius: 10px;
+  --font: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+}
+
+[data-theme="dark"] {
+  --bg: #111418;
+  --surface: #1a1f26;
+  --border: #2a313a;
+  --text: #e6e9ed;
+  --muted: #9aa4af;
+  --accent: #60a5fa;
+  --accent-contrast: #0b1220;
+  --ok: #4ade80;
+  --ko: #f87171;
+  --shadow: 0 1px 2px rgba(0, 0, 0, 0.4);
+}
+
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: var(--font);
+  background: var(--bg);
+  color: var(--text);
+  line-height: 1.55;
+  transition: background 0.2s ease, color 0.2s ease;
+}
+
+h1 { font-size: 1.4rem; margin: 0 0 1rem; }
+h2 { font-size: 1.05rem; margin: 0; }
+a { color: var(--accent); }
+
+/* Header + tabs */
+.app-header {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  padding: 0.75rem 1.5rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  position: sticky;
+  top: 0;
+  z-index: 10;
+}
+
+.brand {
+  font-weight: 700;
+  color: var(--text);
+  text-decoration: none;
+  letter-spacing: -0.01em;
+}
+
+.tabs {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: 1rem;
+}
+
+.tabs button {
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.45rem 0.9rem;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--muted);
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease;
+}
+
+.tabs button:hover { color: var(--text); background: var(--border); }
+.tabs button[aria-selected="true"] {
+  color: var(--accent-contrast);
+  background: var(--accent);
+}
+
+.icon-btn {
+  margin-left: auto;
+  font: inherit;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  border-radius: 999px;
+  width: 2.2rem;
+  height: 2.2rem;
+  cursor: pointer;
+}
+
+/* Layout */
+.container {
+  max-width: 880px;
+  margin: 0 auto;
+  padding: 2rem 1.5rem;
+}
+
+.muted { color: var(--muted); font-size: 0.85rem; }
+.meta { color: var(--muted); font-size: 0.8rem; margin: 0.35rem 0 0; }
+.empty {
+  color: var(--muted);
+  border: 1px dashed var(--border);
+  border-radius: var(--radius);
+  padding: 2rem;
+  text-align: center;
+}
+
+/* Cards */
+.lesson-card, .glossary-card, .note-card {
+  background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow);
+  padding: 1.1rem 1.25rem;
+}
+
+.lesson-list { list-style: none; margin: 0; padding: 0; display: grid; gap: 0.75rem; }
+.glossary-list { display: grid; gap: 0.75rem; }
+.notes-grid { display: grid; gap: 1rem; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+
+.lesson-card-head { display: flex; align-items: center; gap: 0.6rem; }
+.lesson-card-head h2 { flex: 1; }
+.lesson-actions { margin-top: 0.75rem; display: flex; align-items: center; gap: 0.75rem; }
+
+.badge {
+  font-size: 0.72rem;
+  font-weight: 600;
+  padding: 0.2rem 0.5rem;
+  border-radius: 999px;
+  background: var(--border);
+  color: var(--muted);
+  white-space: nowrap;
+}
+
+.mastery {
+  font-weight: 700;
+  font-size: 0.9rem;
+  padding: 0.2rem 0.6rem;
+  border-radius: 999px;
+}
+.mastery[data-mastery="0"] { background: var(--border); color: var(--muted); }
+.mastery[data-mastery] { background: color-mix(in srgb, var(--ok) 15%, var(--surface)); color: var(--ok); }
+
+/* Buttons */
+.btn {
+  display: inline-block;
+  font: inherit;
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border: none;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-contrast);
+  text-decoration: none;
+  cursor: pointer;
+  transition: filter 0.15s ease;
+}
+.btn:hover { filter: brightness(1.08); }
+
+.audio-play {
+  font: inherit;
+  font-size: 0.85rem;
+  padding: 0.35rem 0.8rem;
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--accent);
+  cursor: pointer;
+}
+.audio-play:hover { border-color: var(--accent); }
+
+/* Notes */
+.note-card textarea {
+  width: 100%;
+  margin: 0.6rem 0;
+  padding: 0.75rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+  font: inherit;
+  font-size: 0.92rem;
+  resize: vertical;
+  line-height: 1.6;
+}
+.note-card textarea:focus { outline: 2px solid var(--accent); outline-offset: -1px; }
+
+.note-actions { display: flex; align-items: center; gap: 0.75rem; }
+.note-status { font-size: 0.85rem; }
+.ok { color: var(--ok); font-size: 0.85rem; font-weight: 600; }
+
+/* reveal.js deck */
+.reveal { background: #0b0e12 !important; }
+.stage-tag {
+  text-transform: uppercase;
+  letter-spacing: 0.12em;
+  font-size: 0.8rem !important;
+  color: var(--accent);
+  margin-bottom: 0.4rem !important;
+}
+.slide-text { max-width: 34rem; margin: 0 auto; }
+.instructions { color: #9aa4af; font-size: 0.85rem; }
+.back-link {
+  position: fixed;
+  top: 1rem;
+  left: 1rem;
+  z-index: 999;
+  color: #9aa4af;
+  text-decoration: none;
+  font-size: 0.85rem;
+  background: rgba(0, 0, 0, 0.35);
+  padding: 0.4rem 0.8rem;
+  border-radius: 999px;
+}
+.back-link:hover { color: #fff; }
+
+/* Quiz */
+.quiz { max-width: 32rem; margin: 1rem auto 0; text-align: left; }
+.quiz-q { font-weight: 600; margin-bottom: 0.6rem; }
+.quiz-opt {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  padding: 0.5rem 0.8rem;
+  margin: 0.3rem 0;
+  border: 1px solid #2a313a;
+  border-radius: var(--radius);
+  cursor: pointer;
+}
+.quiz-opt:hover { border-color: var(--accent); }
+.quiz-actions { display: flex; align-items: center; gap: 1rem; margin-top: 0.8rem; }
+.quiz-result { font-weight: 700; }
+.quiz-result.ok { color: var(--ok); }
+.quiz-result.ko { color: var(--ko); }
+
+figure img { max-width: 100%; max-height: 38vh; border-radius: var(--radius); }
+figcaption { font-size: 0.8rem; color: #9aa4af; }

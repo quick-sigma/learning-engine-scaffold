@@ -1,0 +1,11 @@
+{% extends "base.html" %}
+{% block title %}Learning Engine — Índice{% endblock %}
+{% block content %}
+{% if tab == 'glossary' %}
+  {% include "partials/tab_glossary.html" %}
+{% elif tab == 'notes' %}
+  {% include "partials/tab_notes.html" %}
+{% else %}
+  {% include "partials/tab_lessons.html" %}
+{% endif %}
+{% endblock %}

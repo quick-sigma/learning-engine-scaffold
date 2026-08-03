@@ -1,0 +1,6 @@
+{% if correct %}
+  <div class="quiz-result ok" role="status">✓ ¡Correcto!</div>
+{% else %}
+  <div class="quiz-result ko" role="status">✗ Incorrecto. Vuelve a la Explanation y reintenta.</div>
+{% endif %}
+<small class="meta">Mastery actual: {{ accuracy.get('mastery', 0) }}%</small>

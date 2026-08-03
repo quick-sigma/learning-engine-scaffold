@@ -1,0 +1,17 @@
+<nav class="tabs" role="tablist" aria-label="Secciones">
+  <button role="tab" data-tab="lessons"
+          aria-selected="{{ 'true' if tab == 'lessons' else 'false' }}"
+          hx-get="/partials/lessons" hx-target="#tabpanel" hx-push-url="/?tab=lessons">
+    Lecciones
+  </button>
+  <button role="tab" data-tab="glossary"
+          aria-selected="{{ 'true' if tab == 'glossary' else 'false' }}"
+          hx-get="/partials/glossary" hx-target="#tabpanel" hx-push-url="/?tab=glossary">
+    Glosario
+  </button>
+  <button role="tab" data-tab="notes"
+          aria-selected="{{ 'true' if tab == 'notes' else 'false' }}"
+          hx-get="/partials/notes" hx-target="#tabpanel" hx-push-url="/?tab=notes">
+    Notas
+  </button>
+</nav>

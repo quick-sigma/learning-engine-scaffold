@@ -1,0 +1,25 @@
+{
+  "slides": [
+    {
+      "id": "challenge",
+      "stage": "Challenge",
+      "title": "El problema",
+      "text": "¿Por qué la luz blanca se separa en colores al pasar por un prisma?",
+      "audio": ""
+    },
+    {
+      "id": "explanation",
+      "stage": "Explanation",
+      "title": "Refracción y dispersión",
+      "text": "La luz blanca es una mezcla de frecuencias. Cada frecuencia se refracta con un ángulo distinto, así que el prisma las separa.",
+      "audio": ""
+    },
+    {
+      "id": "quiz",
+      "stage": "Quiz",
+      "title": "Pon a prueba",
+      "text": "Elige la respuesta correcta.",
+      "quiz": { "question": "¿Qué separa el prisma?", "options": ["Frecuencias", "Volúmenes", "Masas"], "correct": 0 }
+    }
+  ]
+}

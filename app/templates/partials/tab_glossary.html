@@ -1,0 +1,19 @@
+<section aria-label="Glosario">
+  <h1>Glosario</h1>
+  {% if glossary %}
+    <div class="glossary-list">
+      {% for entry in glossary %}
+        <article class="glossary-card">
+          <h2>{{ entry.term }}</h2>
+          <p>{{ entry.definition }}</p>
+          {% if entry.audio %}
+            {% set audio_src = '/glossary/audio/' ~ entry.audio %}
+            {% include "partials/audio_player.html" %}
+          {% endif %}
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty">El glosario está vacío. opencode añadirá conceptos con cada lección.</p>
+  {% endif %}
+</section>

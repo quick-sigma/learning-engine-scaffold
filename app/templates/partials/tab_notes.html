@@ -1,0 +1,25 @@
+<section aria-label="Notas">
+  <h1>Notas</h1>
+  {% if notes %}
+    <div class="notes-grid">
+      {% for note in notes %}
+        <article class="note-card">
+          <h2>{{ note.lesson_id }}</h2>
+          <form hx-post="/api/notes/{{ note.lesson_id }}"
+                hx-target="#note-status-{{ note.lesson_id }}"
+                hx-swap="innerHTML">
+            <textarea name="text" rows="8" spellcheck="false"
+                      aria-label="Notas de {{ note.lesson_id }}">{{ note.text }}</textarea>
+            <div class="note-actions">
+              <span id="note-status-{{ note.lesson_id }}" class="note-status" aria-live="polite"></span>
+              <button type="submit" class="btn">Guardar</button>
+            </div>
+            <p class="meta">Última actualización: {{ note.updated or 'nunca' }}</p>
+          </form>
+        </article>
+      {% endfor %}
+    </div>
+  {% else %}
+    <p class="empty">No hay notas todavía. Abre una lección y empieza a anotar.</p>
+  {% endif %}
+</section>
