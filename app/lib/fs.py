@@ -14,6 +14,7 @@ DEFAULT_CONFIG: dict[str, Any] = {
     "source_type": "",
     "total_pages": 0,
     "current_page": 1,
+    "current_section": "",
     "current_lesson": None,
     "current_concept": None,
     "mastery_score": 0,
