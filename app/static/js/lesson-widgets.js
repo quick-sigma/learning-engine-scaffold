@@ -649,17 +649,41 @@
   }
 
   /* ------------------------------------------------------------------
-     Arranque: solo cuando reveal.js está listo (deck montado en DOM)
+     Arranque: los widgets viven dentro del deck reveal.js, pero el evento
+     'ready' puede haberse disparado antes de que este script (defer) corra.
+     Se detecta por la clase 'ready' del wrapper del deck (fiable) y como
+     respaldo por el evento 'ready' y DOMContentLoaded.
   ------------------------------------------------------------------ */
+  function deckReady() {
+    var r = document.querySelector('.reveal');
+    return !!(r && r.classList.contains('ready'));
+  }
+
   function initAll() {
-    document.querySelectorAll('[data-widget="canvas"]').forEach(initCanvas);
-    document.querySelectorAll('[data-widget="logic_truth"]').forEach(initTruth);
-    document.querySelectorAll('[data-widget="debate"]').forEach(initDebate);
-    document.querySelectorAll('[data-widget="hefferline"]').forEach(initHefferline);
+    function once(sel, init) {
+      document.querySelectorAll(sel).forEach(function (w) {
+        if (w.dataset.widgetInit) return;
+        w.dataset.widgetInit = '1';
+        init(w);
+      });
+    }
+    once('[data-widget="canvas"]', initCanvas);
+    once('[data-widget="logic_truth"]', initTruth);
+    once('[data-widget="debate"]', initDebate);
+    once('[data-widget="hefferline"]', initHefferline);
+  }
+
+  function boot() {
+    if (deckReady()) { initAll(); return true; }
+    return false;
   }
 
   if (window.Reveal) {
-    Reveal.on('ready', initAll);
+    if (!boot()) {
+      Reveal.on('ready', initAll);
+      document.addEventListener('DOMContentLoaded', boot);
+      setTimeout(boot, 800);
+    }
   } else {
     if (document.readyState === 'loading') {
       document.addEventListener('DOMContentLoaded', initAll);

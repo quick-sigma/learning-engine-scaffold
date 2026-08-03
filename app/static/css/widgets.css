@@ -266,6 +266,7 @@
 
 .hef-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
 .hef-explain { display: grid; gap: 0.6rem; margin-top: 0.8rem; }
+.hef-explain[hidden] { display: none; }
 .hef-explain textarea { width: 100%; }
 
 /* --- Feedback tras guardar widget ---------------------------- */
