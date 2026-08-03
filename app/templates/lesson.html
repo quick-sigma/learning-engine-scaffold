@@ -4,11 +4,11 @@
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <title>{{ lesson_id }} — {{ accuracy.get('lesson_id', '') }}</title>
-  <link rel="stylesheet" href="/static/vendor/reveal/dist/reset.css">
-  <link rel="stylesheet" href="/static/vendor/reveal/dist/reveal.css">
-  <link rel="stylesheet" href="/static/vendor/reveal/dist/theme/black.css">
+  <link rel="stylesheet" href="/static/vendor/reveal/reset.css">
+  <link rel="stylesheet" href="/static/vendor/reveal/reveal.css">
+  <link rel="stylesheet" href="/static/vendor/reveal/theme/black.css">
   <link rel="stylesheet" href="/static/css/style.css">
-  <script src="/static/vendor/reveal/dist/reveal.js"></script>
+  <script src="/static/vendor/reveal/reveal.js"></script>
   <script src="/static/js/htmx.min.js" defer></script>
 </head>
 <body data-lesson="{{ lesson_id }}">
@@ -19,23 +19,57 @@
         <section data-id="{{ slide.id }}">
           {% if slide.stage %}<p class="stage-tag">{{ slide.stage }}</p>{% endif %}
           {% if slide.title %}<h2>{{ slide.title }}</h2>{% endif %}
-          {% if slide.text %}<p class="slide-text">{{ slide.text }}</p>{% endif %}
+
+          {% if slide.text %}
+            <p class="slide-text">{{ slide.text }}</p>
+            {% if slide.audio %}
+              {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ slide.audio %}
+              {% include "partials/audio_player.html" %}
+            {% endif %}
+          {% endif %}
 
           {% if slide.image %}
             <figure>
               <img src="/media/{{ slide.image }}" alt="{{ slide.alt or '' }}">
-              {% if slide.alt %}<figcaption>{{ slide.alt }}</figcaption>{% endif %}
+              {% if slide.alt %}
+                <figcaption>{{ slide.alt }}</figcaption>
+                {% if slide.audio_alt %}
+                  {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ slide.audio_alt %}
+                  {% include "partials/audio_player.html" %}
+                {% endif %}
+              {% endif %}
             </figure>
           {% endif %}
 
           {% if slide.instructions %}
             <p class="instructions">{{ slide.instructions }}</p>
+            {% if slide.audio_instr %}
+              {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ slide.audio_instr %}
+              {% include "partials/audio_player.html" %}
+            {% endif %}
+          {% endif %}
+
+          {% if slide.prediction %}
+            {% include "partials/prediction_form.html" %}
+          {% endif %}
+
+          {% if slide.experiment %}
+            {% include "partials/experiment_form.html" %}
+          {% endif %}
+
+          {% if slide.self_explain %}
+            {% include "partials/self_explain_form.html" %}
           {% endif %}
 
           {% if slide.quiz %}
-            <form class="quiz" hx-post="/api/quiz/{{ lesson_id }}" hx-target="#quiz-result" hx-swap="innerHTML">
+            <form class="quiz" hx-post="/api/quiz/{{ lesson_id }}"
+                  hx-target="#quiz-result-{{ slide.id }}" hx-swap="innerHTML">
               <input type="hidden" name="slide" value="{{ slide.id }}">
-              <p class="quiz-q">{{ slide.quiz.question }}</p>
+              {% if slide.quiz.question %}<p class="quiz-q">{{ slide.quiz.question }}</p>{% endif %}
+              {% if slide.quiz.audio %}
+                {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ slide.quiz.audio %}
+                {% include "partials/audio_player.html" %}
+              {% endif %}
               {% for opt in slide.quiz.options %}
                 <label class="quiz-opt">
                   <input type="radio" name="answer" value="{{ loop.index0 }}" required>
@@ -44,13 +78,10 @@
               {% endfor %}
               <div class="quiz-actions">
                 <button type="submit" class="btn">Responder</button>
-                <div id="quiz-result" aria-live="polite"></div>
+                <div id="quiz-result-{{ slide.id }}" class="quiz-result" aria-live="polite"></div>
               </div>
             </form>
           {% endif %}
-
-          {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ slide.audio if slide.audio else '' %}
-          {% include "partials/audio_player.html" %}
         </section>
       {% endfor %}
     </div>

@@ -1,0 +1,22 @@
+{% if slide.prediction %}
+<form class="prediction" hx-post="/api/prediction_form/{{ lesson_id }}"
+      hx-target="#prediction-result-{{ slide.id }}" hx-swap="innerHTML">
+  <input type="hidden" name="slide" value="{{ slide.id }}">
+  <input type="hidden" name="q" value="{{ slide.prediction.question }}">
+  <p class="prediction-q">{{ slide.prediction.question }}</p>
+  {% if slide.prediction.audio %}
+    {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ slide.prediction.audio %}
+    {% include "partials/audio_player.html" %}
+  {% endif %}
+  {% for opt in slide.prediction.options %}
+    <label class="quiz-opt">
+      <input type="radio" name="answer" value="{{ loop.index0 }}" required>
+      <span>{{ opt }}</span>
+    </label>
+  {% endfor %}
+  <div class="quiz-actions">
+    <button type="submit" class="btn">Comprometer predicción</button>
+    <div id="prediction-result-{{ slide.id }}" class="prediction-result" aria-live="polite"></div>
+  </div>
+</form>
+{% endif %}

@@ -1,0 +1,17 @@
+{% if slide.experiment %}
+<form class="experiment" hx-post="/api/experiment/{{ lesson_id }}"
+      hx-target="#experiment-result-{{ slide.id }}" hx-swap="innerHTML">
+  <input type="hidden" name="slide" value="{{ slide.id }}">
+  <label class="experiment-prompt" for="experiment-{{ slide.id }}">{{ slide.experiment.prompt }}</label>
+  {% if slide.experiment.audio %}
+    {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ slide.experiment.audio %}
+    {% include "partials/audio_player.html" %}
+  {% endif %}
+  <textarea id="experiment-{{ slide.id }}" name="text" rows="4" spellcheck="false" required
+            aria-label="Intento del experimento"></textarea>
+  <div class="quiz-actions">
+    <button type="submit" class="btn">Guardar intento</button>
+    <div id="experiment-result-{{ slide.id }}" class="note-status" aria-live="polite"></div>
+  </div>
+</form>
+{% endif %}

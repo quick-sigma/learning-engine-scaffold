@@ -1,0 +1,17 @@
+{% if slide.self_explain %}
+<form class="reflection" hx-post="/api/self_explain/{{ lesson_id }}"
+      hx-target="#self-explain-result-{{ slide.id }}" hx-swap="innerHTML">
+  <input type="hidden" name="slide" value="{{ slide.id }}">
+  <label class="experiment-prompt" for="self-explain-{{ slide.id }}">{{ slide.self_explain.prompt }}</label>
+  {% if slide.self_explain.audio %}
+    {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ slide.self_explain.audio %}
+    {% include "partials/audio_player.html" %}
+  {% endif %}
+  <textarea id="self-explain-{{ slide.id }}" name="text" rows="4" spellcheck="false" required
+            aria-label="Tu explicación"></textarea>
+  <div class="quiz-actions">
+    <button type="submit" class="btn">Explicar</button>
+    <div id="self-explain-result-{{ slide.id }}" class="note-status" aria-live="polite"></div>
+  </div>
+</form>
+{% endif %}

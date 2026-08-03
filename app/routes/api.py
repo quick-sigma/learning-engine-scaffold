@@ -22,6 +22,43 @@ def prediction(lesson_id: str, payload: types.Prediction):
     return {"ok": True}
 
 
+def _append_to_note(lesson_id: str, section: str, text: str) -> None:
+    existing = fs.get_note(lesson_id)
+    if not existing:
+        existing = f"# Notas de {lesson_id}\n"
+    existing = existing.rstrip() + f"\n\n## {section}\n{text}\n"
+    fs.save_note(lesson_id, existing)
+
+
+@router.post("/api/prediction_form/{lesson_id}", response_class=HTMLResponse)
+def prediction_form(
+    request: Request, lesson_id: str, slide: str = Form(...), q: str = Form(...), answer: str = Form(...)
+):
+    fs.append_response(
+        lesson_id,
+        {"ev": "prediction", "slide": slide, "q": q, "answer": answer, "ts": fs.now_ms()},
+    )
+    return templates.TemplateResponse(request, "partials/prediction_result.html", {})
+
+
+@router.post("/api/experiment/{lesson_id}", response_class=HTMLResponse)
+def experiment(request: Request, lesson_id: str, slide: str = Form(...), text: str = Form(...)):
+    fs.append_response(
+        lesson_id, {"ev": "experiment", "slide": slide, "text": text[:2000], "ts": fs.now_ms()}
+    )
+    _append_to_note(lesson_id, f"Experimento (slide {slide})", text)
+    return templates.TemplateResponse(request, "partials/experiment_saved.html", {})
+
+
+@router.post("/api/self_explain/{lesson_id}", response_class=HTMLResponse)
+def self_explain(request: Request, lesson_id: str, slide: str = Form(...), text: str = Form(...)):
+    fs.append_response(
+        lesson_id, {"ev": "self_explain", "slide": slide, "text": text[:2000], "ts": fs.now_ms()}
+    )
+    _append_to_note(lesson_id, f"Reflexión (slide {slide})", text)
+    return templates.TemplateResponse(request, "partials/self_explain_saved.html", {})
+
+
 @router.post("/api/quiz/{lesson_id}", response_class=HTMLResponse)
 def quiz(request: Request, lesson_id: str, slide: str = Form(...), answer: str = Form(...)):
     lesson = fs.load_lesson(lesson_id)
