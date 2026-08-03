@@ -217,6 +217,57 @@
 .debate-role.agent { color: #93c5fd; }
 .debate-role.student { color: #86efac; }
 
+/* --- Hefferline: silenciar el «ruido» con el control M-1 ---- */
+.hef-stage { display: grid; gap: 0.8rem; }
+
+.hef-noise {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.6rem;
+  border: 1px solid #3a434f;
+  border-radius: 12px;
+  padding: 0.8rem 1rem;
+  background:
+    repeating-linear-gradient(45deg, rgba(248, 113, 113, 0.08) 0 6px, transparent 6px 12px);
+  min-height: 56px;
+}
+.hef-noise-icon {
+  width: 16px; height: 16px;
+  border-radius: 50%;
+  background: var(--ko);
+  box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7);
+  animation: hef-pulse 1s infinite;
+}
+@keyframes hef-pulse {
+  0%   { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0.7); }
+  70%  { box-shadow: 0 0 0 10px rgba(248, 113, 113, 0); }
+  100% { box-shadow: 0 0 0 0 rgba(248, 113, 113, 0); }
+}
+.hef-noise-label { font-size: 0.92rem; color: #e6e9ed; }
+.hef-noise.hef-quiet {
+  background: rgba(34, 197, 94, 0.08);
+  border-color: rgba(34, 197, 94, 0.4);
+}
+.hef-noise.hef-quiet .hef-noise-icon {
+  background: var(--ok);
+  animation: none;
+  box-shadow: none;
+}
+
+.hef-status { font-weight: 600; }
+.hef-status.hef-on { color: var(--ko); }
+.hef-status.hef-off { color: var(--ok); }
+
+.hef-control { display: grid; gap: 0.35rem; }
+.hef-control label { font-weight: 600; color: #93c5fd; letter-spacing: 0.04em; }
+.hef-slider-labels { display: flex; justify-content: space-between; align-items: center; gap: 0.6rem; font-size: 0.78rem; color: #9aa4af; }
+.hef-hint { color: #6b7280; font-style: italic; text-align: center; flex: 1; }
+
+.hef-actions { display: flex; gap: 0.5rem; justify-content: flex-end; }
+.hef-explain { display: grid; gap: 0.6rem; margin-top: 0.8rem; }
+.hef-explain textarea { width: 100%; }
+
 /* --- Feedback tras guardar widget ---------------------------- */
 .widget-saved { display: flex; align-items: center; gap: 0.4rem; }
 .widget-saved .ok { margin: 0; }

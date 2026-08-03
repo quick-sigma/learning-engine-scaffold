@@ -567,6 +567,87 @@
     renderTurn();
   }
 
+  /* ==================================================================
+     Widget 4: Hefferline — silenciar un «ruido» con un control M-1
+     cuyo efecto el estudiante desconoce (recrea el experimento de
+     Hefferline: contracciones no sentidas que silencian un ruido).
+     ================================================================== */
+  function initHefferline(widget) {
+    var root = widget;
+    var lessonId = root.dataset.lesson;
+    var widgetId = root.dataset.widgetId;
+    var slider = root.querySelector('[data-hef-slider]');
+    var noise = root.querySelector('[data-hef-noise]');
+    var status = root.querySelector('[data-hef-status]');
+    var explain = root.querySelector('[data-hef-explain]');
+    var text = root.querySelector('[data-hef-text]');
+    var feedback = root.querySelector('[data-hef-feedback]');
+
+    var min = 0, max = 100;
+    var band = { lo: 62, hi: 74 };       // rango oculto que silencia el ruido
+    var silenced = false;
+    var attempts = 0;
+
+    function rnd(a, b) { return Math.round(a + Math.random() * (b - a)); }
+
+    function resetBand() {
+      band.lo = rnd(30, 70);
+      band.hi = Math.min(95, band.lo + rnd(5, 12));
+      silenced = false;
+      attempts = 0;
+      slider.value = 0;
+      explain.hidden = true;
+      text.value = '';
+      noise.classList.remove('hef-quiet');
+      status.textContent = 'El ruido está sonando.';
+      status.className = 'hef-status hef-on';
+      feedback.textContent = '';
+      telemetry({ lesson_id: lessonId, ev: 'hefferline_reset', widget: widgetId, band: [band.lo, band.hi] });
+    }
+
+    function check() {
+      var v = parseInt(slider.value, 10);
+      attempts++;
+      if (v >= band.lo && v <= band.hi) {
+        if (!silenced) {
+          silenced = true;
+          noise.classList.add('hef-quiet');
+          status.textContent = '¡El ruido se ha silenciado!';
+          status.className = 'hef-status hef-off';
+          explain.hidden = false;
+          telemetry({ lesson_id: lessonId, ev: 'hefferline_silenced', widget: widgetId, attempts: attempts, value: v });
+          saveWidget(lessonId, widgetId, 'hefferline', { silenced: true, attempts: attempts, band: [band.lo, band.hi] }, function () {});
+        }
+      } else {
+        if (silenced) {
+          silenced = false;
+          noise.classList.remove('hef-quiet');
+          status.textContent = 'El ruido volvió a sonar.';
+          status.className = 'hef-status hef-on';
+          explain.hidden = true;
+          telemetry({ lesson_id: lessonId, ev: 'hefferline_reversed', widget: widgetId });
+        }
+      }
+    }
+
+    slider.addEventListener('input', check);
+
+    root.querySelector('[data-hef-reset]').addEventListener('click', function () {
+      resetBand();
+    });
+
+    root.querySelector('[data-hef-save]').addEventListener('click', function () {
+      var v = text.value.trim();
+      if (!v) { feedback.textContent = 'Escribe tu explicación antes de guardar.'; feedback.className = 'widget-feedback'; return; }
+      saveWidget(lessonId, widgetId, 'hefferline_explain', { text: v }, function () {});
+      telemetry({ lesson_id: lessonId, ev: 'hefferline_explain', widget: widgetId, text: v });
+      feedback.textContent = '✓ Explicación guardada. Ahora sabes que silenciaste el ruido, pero ¿podrías decir qué es exactamente el control M-1?';
+      feedback.className = 'widget-feedback ok';
+    });
+
+    resetBand();
+  }
+
   /* ------------------------------------------------------------------
      Arranque: solo cuando reveal.js está listo (deck montado en DOM)
   ------------------------------------------------------------------ */
@@ -574,6 +655,7 @@
     document.querySelectorAll('[data-widget="canvas"]').forEach(initCanvas);
     document.querySelectorAll('[data-widget="logic_truth"]').forEach(initTruth);
     document.querySelectorAll('[data-widget="debate"]').forEach(initDebate);
+    document.querySelectorAll('[data-widget="hefferline"]').forEach(initHefferline);
   }
 
   if (window.Reveal) {

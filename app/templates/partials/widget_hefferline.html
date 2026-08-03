@@ -1,0 +1,40 @@
+{% if widget %}
+<div class="widget hef-widget"
+     data-widget="hefferline"
+     data-widget-id="{{ slide.id }}"
+     data-lesson="{{ lesson_id }}"
+     data-task="{{ widget.task or '' }}">
+
+  <div class="hef-stage">
+    <div class="hef-noise" data-hef-noise aria-hidden="true">
+      <span class="hef-noise-icon" data-hef-icon></span>
+      <span class="hef-noise-label" data-hef-label>Ruido desagradable</span>
+    </div>
+
+    <p class="hef-status" data-hef-status aria-live="polite">El ruido está sonando.</p>
+
+    <div class="hef-control">
+      <label for="hef-{{ slide.id }}-m1">Control M-1</label>
+      <input type="range" id="hef-{{ slide.id }}-m1" data-hef-slider
+             min="0" max="100" step="1" value="0" aria-describedby="hef-{{ slide.id }}-hint">
+      <div class="hef-slider-labels">
+        <span>0</span><span id="hef-{{ slide.id }}-hint" class="hef-hint">Ajusta el control y observa qué ocurre</span><span>100</span>
+      </div>
+    </div>
+
+    <div class="hef-actions">
+      <button type="button" class="btn btn-sm" data-hef-reset>Reiniciar sesión</button>
+    </div>
+  </div>
+
+  <div class="hef-explain" data-hef-explain hidden>
+    <p class="instructions">Lograste silenciarlo. Ahora, con tus palabras: ¿qué controlaste exactamente para silenciar el ruido? ¿Podrías repetirlo a ciegas, sin mirar el control?</p>
+    <textarea data-hef-text rows="2" aria-label="Explica qué controlaste para silenciar el ruido"></textarea>
+    <div class="hef-actions">
+      <button type="button" class="btn btn-sm" data-hef-save>Guardar explicación</button>
+    </div>
+  </div>
+
+  <div class="widget-feedback" data-hef-feedback aria-live="polite"></div>
+</div>
+{% endif %}
