@@ -648,6 +648,211 @@
     resetBand();
   }
 
+  /* ==================================================================
+     Widget 5: Sonda — sentir un objeto oculto con la punta de una
+     herramienta virtual. El contacto se percibe en el extremo distal
+     (la punta), no en la mano (el término proximal): enacta la
+     incorporación de la herramienta al cuerpo de Polanyi.
+     ================================================================== */
+  function initProbe(widget) {
+    var root = widget;
+    var lessonId = root.dataset.lesson;
+    var widgetId = root.dataset.widgetId;
+    var canvas = root.querySelector('[data-probe-canvas]');
+    var status = root.querySelector('[data-probe-status]');
+    var question = root.querySelector('[data-probe-question]');
+    var feedback = root.querySelector('[data-probe-feedback]');
+    if (!canvas || !canvas.getContext) return;
+
+    var ctx = canvas.getContext('2d');
+    var W = canvas.width, H = canvas.height;
+    var hand = { x: 52, y: H - 44 };
+    var tip = { x: W - 60, y: H - 44 };
+    var object = null;
+    var contacts = 0;
+    var touching = false;
+    var revealed = false;
+    var keys = {};
+
+    function rnd(a, b) { return a + Math.random() * (b - a); }
+
+    function newObject() {
+      var cx = rnd(W * 0.3, W * 0.72);
+      var cy = rnd(H * 0.22, H * 0.62);
+      var rw = rnd(34, 60);
+      var rh = rnd(26, 48);
+      var angle = rnd(-0.6, 0.6);
+      // elipse oculta (orientada)
+      object = { cx: cx, cy: cy, rw: rw, rh: rh, angle: angle };
+    }
+
+    function pointInEllipse(px, py) {
+      if (!object) return false;
+      var dx = px - object.cx, dy = py - object.cy;
+      var ca = Math.cos(-object.angle), sa = Math.sin(-object.angle);
+      var rx = dx * ca - dy * sa;
+      var ry = dx * sa + dy * ca;
+      var a = object.rw, b = object.rh;
+      return (rx * rx) / (a * a) + (ry * ry) / (b * b) <= 1;
+    }
+
+    function drawGrid() {
+      ctx.strokeStyle = 'rgba(148,163,184,0.16)';
+      ctx.lineWidth = 1;
+      ctx.beginPath();
+      for (var x = 0; x <= W; x += 40) { ctx.moveTo(x, 0); ctx.lineTo(x, H); }
+      for (var y = 0; y <= H; y += 40) { ctx.moveTo(0, y); ctx.lineTo(W, y); }
+      ctx.stroke();
+    }
+
+    function drawObject(show) {
+      if (!object || !show) return;
+      ctx.save();
+      ctx.translate(object.cx, object.cy);
+      ctx.rotate(object.angle);
+      ctx.fillStyle = 'rgba(74,222,128,0.22)';
+      ctx.strokeStyle = '#4ade80';
+      ctx.lineWidth = 2;
+      ctx.beginPath();
+      ctx.ellipse(0, 0, object.rw, object.rh, 0, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.stroke();
+      ctx.restore();
+      ctx.font = '13px system-ui, sans-serif';
+      ctx.fillStyle = '#4ade80';
+      ctx.textAlign = 'center';
+      ctx.fillText('El objeto oculto', object.cx, object.cy + object.rh + 16);
+    }
+
+    function draw() {
+      ctx.clearRect(0, 0, W, H);
+      drawGrid();
+      drawObject(revealed);
+
+      // varilla de la sonda
+      ctx.strokeStyle = touching ? '#fbbf24' : '#94a3b8';
+      ctx.lineWidth = 3;
+      ctx.beginPath();
+      ctx.moveTo(hand.x, hand.y);
+      ctx.lineTo(tip.x, tip.y);
+      ctx.stroke();
+
+      // mano (término proximal): apagada, sin feedback de contacto
+      ctx.fillStyle = '#475569';
+      ctx.beginPath();
+      ctx.arc(hand.x, hand.y, 11, 0, Math.PI * 2);
+      ctx.fill();
+      ctx.font = '11px system-ui, sans-serif';
+      ctx.fillStyle = '#94a3b8';
+      ctx.textAlign = 'center';
+      ctx.fillText('tu mano', hand.x, hand.y + 24);
+
+      // punta (término distal): aquí se siente el contacto
+      if (touching) {
+        ctx.fillStyle = '#f59e0b';
+        ctx.strokeStyle = '#fbbf24';
+        ctx.lineWidth = 2;
+        ctx.beginPath();
+        ctx.arc(tip.x, tip.y, 10, 0, Math.PI * 2);
+        ctx.fill();
+        ctx.stroke();
+        ctx.font = '12px system-ui, sans-serif';
+        ctx.fillStyle = '#fbbf24';
+        ctx.fillText('¡contacto!', tip.x, tip.y - 16);
+      } else {
+        ctx.fillStyle = '#e2e8f0';
+        ctx.beginPath();
+        ctx.arc(tip.x, tip.y, 7, 0, Math.PI * 2);
+        ctx.fill();
+      }
+    }
+
+    function setTip(x, y) {
+      var r = canvas.getBoundingClientRect();
+      tip.x = Math.max(0, Math.min(W, (x - r.left) * (W / r.width)));
+      tip.y = Math.max(0, Math.min(H, (y - r.top) * (H / r.height)));
+      var wasTouching = touching;
+      touching = pointInEllipse(tip.x, tip.y);
+      if (touching && !wasTouching && !revealed) {
+        contacts++;
+        status.textContent = '¡La punta tocó algo! El contacto se siente aquí, en la punta. Sigue barriendo para mapear el objeto.';
+        status.className = 'probe-status probe-on';
+        telemetry({ lesson_id: lessonId, ev: 'probe_contact', widget: widgetId, contact: contacts });
+      } else if (!touching && wasTouching) {
+        status.textContent = 'La punta salió del objeto. Sigue barriendo.';
+        status.className = 'probe-status';
+      }
+      draw();
+    }
+
+    canvas.addEventListener('pointermove', function (e) { setTip(e.clientX, e.clientY); });
+    canvas.addEventListener('pointerdown', function (e) { setTip(e.clientX, e.clientY); });
+    canvas.setAttribute('tabindex', '0');
+    canvas.addEventListener('keydown', function (e) {
+      var step = 8;
+      var dx = 0, dy = 0;
+      if (e.key === 'ArrowRight') dx = step;
+      if (e.key === 'ArrowLeft') dx = -step;
+      if (e.key === 'ArrowDown') dy = step;
+      if (e.key === 'ArrowUp') dy = -step;
+      if (dx || dy) {
+        e.preventDefault();
+        var r = canvas.getBoundingClientRect();
+        setTip(r.left + (tip.x + dx) * (r.width / W), r.top + (tip.y + dy) * (r.height / H));
+      }
+    });
+
+    root.querySelector('[data-probe-reveal]').addEventListener('click', function () {
+      if (contacts === 0) {
+        feedback.textContent = 'Aún no has tocado el objeto con la punta: barre el campo hasta notar el contacto.';
+        feedback.className = 'widget-feedback';
+        return;
+      }
+      revealed = true;
+      question.hidden = false;
+      status.textContent = 'Ahí estaba el objeto oculto. Lo sentiste con la punta de la sonda, no con tu mano. Ahora responde: ¿dónde sentiste el contacto?';
+      status.className = 'probe-status probe-off';
+      draw();
+      telemetry({ lesson_id: lessonId, ev: 'probe_reveal', widget: widgetId, contacts: contacts });
+      saveWidget(lessonId, widgetId, 'probe', { contacts: contacts, revealed: true }, function () {});
+    });
+
+    root.querySelector('[data-probe-reset]').addEventListener('click', function () {
+      newObject();
+      contacts = 0;
+      touching = false;
+      revealed = false;
+      question.hidden = true;
+      tip.x = W - 60; tip.y = H - 44;
+      status.textContent = 'Hay un objeto nuevo oculto en el campo. Barre con la sonda para encontrarlo.';
+      status.className = 'probe-status';
+      feedback.textContent = '';
+      draw();
+      telemetry({ lesson_id: lessonId, ev: 'probe_reset', widget: widgetId });
+    });
+
+    root.querySelector('[data-probe-save]').addEventListener('click', function () {
+      var sel = question.querySelector('input[name="probe-where"]:checked');
+      if (!sel) {
+        feedback.textContent = 'Elige una de las tres opciones antes de guardar.';
+        feedback.className = 'widget-feedback';
+        return;
+      }
+      saveWidget(lessonId, widgetId, 'probe_answer', { where: sel.value, contacts: contacts }, function () {});
+      telemetry({ lesson_id: lessonId, ev: 'probe_answer', widget: widgetId, where: sel.value });
+      if (sel.value === 'punta') {
+        feedback.textContent = '✓ Exacto. Sentiste el contacto en la punta de la sonda, no en tu mano: la herramienta se incorporó a tu cuerpo.';
+        feedback.className = 'widget-feedback ok';
+      } else {
+        feedback.textContent = 'Piénsalo de nuevo: tu mano no recibió ningún golpe; toda la información llegó a través del extremo de la sonda. Vuelve a barre el campo y observa dónde se ilumina el contacto.';
+        feedback.className = 'widget-feedback';
+      }
+    });
+
+    newObject();
+    draw();
+  }
+
   /* ------------------------------------------------------------------
      Arranque: los widgets viven dentro del deck reveal.js, pero el evento
      'ready' puede haberse disparado antes de que este script (defer) corra.
@@ -671,6 +876,7 @@
     once('[data-widget="logic_truth"]', initTruth);
     once('[data-widget="debate"]', initDebate);
     once('[data-widget="hefferline"]', initHefferline);
+    once('[data-widget="probe"]', initProbe);
   }
 
   function boot() {

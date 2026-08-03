@@ -87,6 +87,15 @@ def main() -> None:
         if s.get("quiz", {}).get("audio"):
             synth(s["quiz"]["audio"].rsplit(".", 1)[0], s["quiz"]["question"], AUDIO_DIR)
 
+        # EVIDENCE D14: opciones de quiz y predicción narradas (options_audio)
+        for sub_key in ("prediction", "quiz"):
+            sub = s.get(sub_key) or {}
+            for opt_name in sub.get("options_audio") or []:
+                idx = int(opt_name.rsplit(".", 1)[0].rsplit("-", 1)[-1])
+                opt_text = sub["options"][idx] if idx < len(sub["options"]) else ""
+                if opt_text:
+                    synth(opt_name.rsplit(".", 1)[0], opt_text, AUDIO_DIR)
+
     gloss = json.loads((ROOT / "glossary" / "glossary.json").read_text())
     for g in gloss:
         if g["lesson"] == lesson_id and g.get("audio"):

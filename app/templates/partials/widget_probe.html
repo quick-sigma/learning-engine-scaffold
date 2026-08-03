@@ -1,0 +1,31 @@
+{% if widget %}
+<div class="widget probe-widget"
+     data-widget="probe"
+     data-widget-id="{{ slide.id }}"
+     data-lesson="{{ lesson_id }}"
+     data-task="{{ widget.task or '' }}">
+
+  <div class="probe-stage">
+    <canvas data-probe-canvas width="560" height="360" aria-label="Campo de exploración. Mueve la sonda para barrer la zona y encontrar un objeto oculto. El contacto se notará en la punta de la sonda."></canvas>
+
+    <p class="probe-status" data-probe-status aria-live="polite">Mueve la sonda (o usa las flechas) para barrer el campo. Cuando la punta toque algo, lo notarás.</p>
+
+    <div class="probe-actions">
+      <button type="button" class="btn btn-sm" data-probe-reveal>He encontrado el objeto (revelar)</button>
+      <button type="button" class="btn btn-sm" data-probe-reset>Reiniciar (nuevo objeto)</button>
+    </div>
+
+    <div class="probe-question" data-probe-question hidden>
+      <p class="instructions">Cuando la punta tocó el objeto, ¿dónde sentiste el contacto?</p>
+      <label class="quiz-opt"><input type="radio" name="probe-where" value="mano"> En mi mano</label>
+      <label class="quiz-opt"><input type="radio" name="probe-where" value="punta"> En la punta de la sonda</label>
+      <label class="quiz-opt"><input type="radio" name="probe-where" value="pantalla"> En la pantalla, porque lo vi</label>
+      <div class="probe-actions">
+        <button type="button" class="btn btn-sm" data-probe-save>Guardar respuesta</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="widget-feedback" data-probe-feedback aria-live="polite"></div>
+</div>
+{% endif %}

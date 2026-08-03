@@ -272,3 +272,25 @@
 /* --- Feedback tras guardar widget ---------------------------- */
 .widget-saved { display: flex; align-items: center; gap: 0.4rem; }
 .widget-saved .ok { margin: 0; }
+
+/* --- Widget 5: Sonda (herramienta como extensión del cuerpo) -- */
+.probe-stage { display: grid; gap: 0.7rem; }
+.probe-stage canvas {
+  width: 100%;
+  max-width: 560px;
+  height: auto;
+  border: 1px solid var(--border, #3a4252);
+  border-radius: 8px;
+  background: #1a2029;
+  cursor: crosshair;
+  outline: none;
+  touch-action: none;
+}
+.probe-stage canvas:focus-visible { outline: 2px solid #93c5fd; }
+.probe-status { font-weight: 600; }
+.probe-status.probe-on { color: var(--ok); }
+.probe-status.probe-off { color: #fbbf24; }
+.probe-actions { display: flex; gap: 0.5rem; justify-content: flex-end; flex-wrap: wrap; }
+.probe-question { display: grid; gap: 0.55rem; margin-top: 0.7rem; padding: 0.7rem 0.9rem; border: 1px dashed var(--border, #3a4252); border-radius: 8px; }
+.probe-question[hidden] { display: none; }
+.probe-question .quiz-opt { display: block; }
