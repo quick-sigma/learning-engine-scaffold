@@ -15,7 +15,27 @@ recolecta la telemetría del estudiante que realimenta la siguiente lección.
 | Interactividad | HTMX (vendored, sin CDN) |
 | Lecciones | reveal.js (vendored, sin CDN) |
 | TTS | Kokoro (kokoro-onnx) + ffmpeg |
+| Tipografía | Atkinson Hyperlegible + JetBrains Mono (vendored en `static/fonts/`) |
 | Entorno | uv |
+
+## Sistema de diseño (UI.md)
+
+El diseño UI es **normativo y determinista**: todas las reglas de tokens
+(colores, tipografía, espaciado, radios, sombras, movimiento), componentes,
+widgets y slides viven en **`/UI.md`** en la raíz del repo. Reglas clave:
+
+- **Tokens como única fuente de verdad**: prohibido hardcodear colores,
+  tamaños, radios o duraciones fuera de `:root` en `app/static/css/style.css`.
+- Tipografía de accesibilidad (**Atkinson Hyperlegible**), vendered sin CDN.
+- Temas claro/oscuro/auto con sincronización obligatoria de tokens (§3 UI.md).
+- El deck reveal.js es **siempre oscuro**; cada etapa del bucle de
+  descubrimiento tiene color determinista via `data-stage` (§6 UI.md).
+- Movimiento solo por feedback de competencia; `prefers-reduced-motion`
+  desactiva todo (§5 UI.md).
+
+> Al añadir o modificar cualquier CSS/template/widget, seguir UI.md antes que
+> la intuición. Si falta un token, crearlo (en las 3 variantes de tema) y
+> registrarlo en UI.md §1.
 
 ## Puesta en marcha
 

@@ -7,19 +7,21 @@
           <div class="lesson-card-head">
             <span class="badge">{{ l.id }}</span>
             <h2>{{ l.title }}</h2>
-            <span class="mastery" data-mastery="{{ l.mastery }}">{{ l.mastery }}%</span>
+            <span class="mastery-wrap" role="img" aria-label="Dominio: {{ l.mastery }}%">
+              <span class="mastery" data-mastery="{{ l.mastery }}">{{ l.mastery }}%</span>
+              <span class="mastery-bar" aria-hidden="true"><span style="--val: {{ l.mastery }}%"></span></span>
+            </span>
           </div>
           <p class="meta">
-            {{ l.slides }} slides ·
-            {% if l.has_content %}contenido listo{% else %}pendiente de generar{% endif %}
-            {% if l.ready %}audio listo{% else %}generando audio{% endif %}
+            {{ l.slides }} slides
             {% if l.updated %} · actualizada {{ l.updated }}{% endif %}
           </p>
           <div class="lesson-actions">
             {% if l.ready %}
-              <a class="btn" href="/lessons/{{ l.id }}">Abrir en reveal.js</a>
+              <span class="status-chip" data-status="ready">Lista</span>
+              <a class="btn" href="/lessons/{{ l.id }}">Abrir lección →</a>
             {% elif l.has_content %}
-              <span class="muted" role="status">⏳ Generando audio ({{ l.missing_audio|length }} pendiente{{ 's' if l.missing_audio|length != 1 else '' }})</span>
+              <span class="status-chip" data-status="pending" role="status">Generando audio · {{ l.missing_audio|length }} pendiente{{ 's' if l.missing_audio|length != 1 else '' }}</span>
             {% else %}
               <span class="muted">Pídele a opencode que genere esta lección</span>
             {% endif %}

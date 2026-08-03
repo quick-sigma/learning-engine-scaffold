@@ -1,5 +1,7 @@
 {% if audio_src %}
 <button type="button" class="audio-play{% if compact %} audio-play-sm{% endif %}" data-src="{{ audio_src }}" aria-label="Reproducir narración">
-  <span aria-hidden="true">▶</span> {% if compact %}Narrar{% else %}Narración{% endif %}
+  <span class="play-ico" aria-hidden="true">▶</span>
+  <span class="eq" aria-hidden="true"><i></i><i></i><i></i></span>
+  {% if compact %}Narrar{% else %}Narración{% endif %}
 </button>
 {% endif %}

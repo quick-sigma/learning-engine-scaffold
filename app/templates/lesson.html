@@ -19,7 +19,7 @@
     <div class="slides">
       {% for slide in slides %}
         <section data-id="{{ slide.id }}">
-          {% if slide.stage %}<p class="stage-tag">{{ slide.stage }}</p>{% endif %}
+          {% if slide.stage %}<p class="stage-tag" data-stage="{{ slide.stage | lower }}">{{ slide.stage }}</p>{% endif %}
           {% if slide.title %}<h2>{{ slide.title }}</h2>{% endif %}
 
           {% if slide.text %}
