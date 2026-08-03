@@ -129,16 +129,18 @@ def lesson_audio_status(lesson_id: str, lesson: dict[str, Any] | None = None) ->
     audio_dir = ROOT / "lessons" / lesson_id / "audio"
     missing: list[str] = []
     for slide in lesson.get("slides", []):
-        for field in ("audio", "alt_audio", "instr_audio", "quiz_audio"):
+        # audio de la slide, instrucciones y alt de imagen
+        for field in ("audio", "audio_instr", "audio_alt"):
             name = slide.get(field)
             if name and not (audio_dir / name).is_file():
                 missing.append(f"{slide.get('id', '?')}/{field}: {name}")
-        quiz = slide.get("quiz")
-        if isinstance(quiz, dict):
-            for field in ("audio", "feedback_audio"):
-                name = quiz.get(field)
+        # audio anidado de predicción, experimento, self-explanation y quiz
+        for sub_key in ("prediction", "experiment", "self_explain", "quiz"):
+            sub = slide.get(sub_key)
+            if isinstance(sub, dict):
+                name = sub.get("audio")
                 if name and not (audio_dir / name).is_file():
-                    missing.append(f"{slide.get('id', '?')}/quiz.{field}: {name}")
+                    missing.append(f"{slide.get('id', '?')}/{sub_key}.audio: {name}")
     # Marca explícita de publicación en slides.json (audio_ready)
     ready_flag = lesson.get("audio_ready", True)
     return (ready_flag and not missing), missing
