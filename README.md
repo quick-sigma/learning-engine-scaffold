@@ -49,12 +49,32 @@ learning/
     misconceptions/          # errores recurrentes
     profiles/                # perfil exportado por lección
     media/                   # assets extraídos de la fuente
-    concepts/                # una nota markdown por concepto
+    concepts/                # una nota markdown por concepto (plantilla
+                             # _template.md) — el grafo crece con la VOZ del
+                             # usuario: cada conceptos/<slug>.md tiene una
+                             # sección "## Voz del usuario" con fragmentos
+                             # literales de sus notas
     sessions.md              # diario de aprendizaje
     research/                # marcos de enseñanza por concepto (opencode busca
                              # en arXiv/WebFetch ANTES de escribir cada lección)
     generate_audio.py        # Kokoro TTS → WAV (ffmpeg a MP3)
 ```
+
+## Árbol de conocimiento con la voz del usuario
+
+Las notas del estudiante no son texto muerto: **se usan para conectar y
+propagar el conocimiento hacia adelante**. Cada lección, opencode:
+
+1. Lee `notes/*.md` (texto literal del usuario) antes de diseñar la lección.
+2. Tiende puentes desde las frases del usuario hacia el concepto nuevo
+   (la siguiente lección parte de lo que el usuario ya dijo).
+3. Guarda los fragmentos conectados en `concepts/<slug>.md` → `## Voz del
+   usuario`, citando su `notes/<lesson>.md` de origen.
+4. Si una nota revela un error conceptual, pasa a `misconceptions/` y se
+   convierte en el Challenge de la siguiente lección.
+
+Así el árbol de conocimiento se arma de abajo hacia arriba con las palabras del
+usuario, no solo con el texto de la fuente.
 
 ## Formato de una lección
 
