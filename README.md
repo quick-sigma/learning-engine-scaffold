@@ -98,22 +98,32 @@ usuario, no solo con el texto de la fuente.
       "stage": "Quiz",
       "title": "Pon a prueba",
       "text": "…",
-      "quiz": { "question": "¿Cuál?", "options": ["A", "B", "C"], "correct": 1 }
+      "quiz": {
+        "question": "¿Cuál?",
+        "options": ["A", "B", "C"],
+        "correct": 1,
+        "options_audio": ["quiz-opt-0.mp3", "quiz-opt-1.mp3", "quiz-opt-2.mp3"]
+      }
     }
   ]
 }
 ```
+
+Cada opción de quiz/predicción tiene su MP3 en `options_audio` (uno por opción,
+alineado con `options`); el reproductor se muestra dentro de cada opción. La
+lección no se publica si falta alguna opción narrada.
 
 Etapas del bucle de descubrimiento: Challenge → Prediction → Experiment →
 Observation → Reflection → Explanation → Generalization → Application → Quiz
 → Mastery.
 
 ### Publicación retardada (los slides NO se ven antes que el audio)
-
 Una lección **no es visible hasta que el 100% de su audio está generado**.
 `slides.json` lleva la marca `"audio_ready": false` al crearse; solo pasa a
-`true` cuando todos los MP3 referenciados (`audio`, `alt_audio`,
-`instr_audio`, `quiz_audio`) existen en `lessons/<id>/audio/`. Mientras tanto:
+`true` cuando todos los MP3 referenciados existen en `lessons/<id>/audio/`:
+`audio`, `alt_audio`, `instr_audio`, `quiz_audio`, y **`options_audio` de cada
+opción de quiz y predicción** (cada alternativa debe ser narrable). Mientras
+tanto:
 
 - El índice muestra la lección con estado **"generando audio (N pendiente)"**.
 - `GET /lessons/{id}` devuelve `409` + plantilla `lesson_pending.html`

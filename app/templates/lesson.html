@@ -76,6 +76,11 @@
                 <label class="quiz-opt">
                   <input type="radio" name="answer" value="{{ loop.index0 }}" required>
                   <span>{{ opt }}</span>
+                  {% if slide.quiz.options_audio and slide.quiz.options_audio[loop.index0] %}
+                    {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ slide.quiz.options_audio[loop.index0] %}
+                    {% set compact = true %}
+                    {% include "partials/audio_player.html" %}
+                  {% endif %}
                 </label>
               {% endfor %}
               <div class="quiz-actions">

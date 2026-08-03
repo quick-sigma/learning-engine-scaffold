@@ -285,6 +285,15 @@ a { color: var(--accent); }
 }
 .reveal .audio-play:hover { background: rgba(96, 165, 250, 0.22); }
 
+/* Reproductor compacto dentro de una opción de quiz/predicción */
+.reveal .audio-play-sm {
+  display: inline-block;
+  margin: 0 0 0 0.5rem;
+  padding: 0.1rem 0.5rem;
+  font-size: 0.7rem;
+  vertical-align: middle;
+}
+
 /* Formularios dentro del deck */
 .reveal .quiz,
 .reveal .prediction,

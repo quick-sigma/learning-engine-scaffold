@@ -141,6 +141,13 @@ def lesson_audio_status(lesson_id: str, lesson: dict[str, Any] | None = None) ->
                 name = sub.get("audio")
                 if name and not (audio_dir / name).is_file():
                     missing.append(f"{slide.get('id', '?')}/{sub_key}.audio: {name}")
+                name = sub.get("feedback_audio")
+                if name and not (audio_dir / name).is_file():
+                    missing.append(f"{slide.get('id', '?')}/{sub_key}.feedback: {name}")
+                # cada opción de quiz/predicción debe estar narrada
+                for i, opt in enumerate(sub.get("options_audio") or []):
+                    if opt and not (audio_dir / opt).is_file():
+                        missing.append(f"{slide.get('id', '?')}/{sub_key}.opcion[{i}]: {opt}")
     # Marca explícita de publicación en slides.json (audio_ready)
     ready_flag = lesson.get("audio_ready", True)
     return (ready_flag and not missing), missing
