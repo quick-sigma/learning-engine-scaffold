@@ -35,11 +35,18 @@ refina esa dirección **para el concepto específico** que se va a enseñar.
    persista como memoria del sistema; las URLs y IDs arXiv deben quedar
    registrados.
 
+4. **Listar formas varias** (regla obligatoria §5.2): en la misma búsqueda,
+   buscar **al menos 3 formas alternativas de presentar/explicar el concepto**
+   (lienzo/grafo, manipulación simbólica, juego, debate, timeline, simulación,
+   diagrama…) y marcar la elegida en la sección "Formas varias" de la plantilla.
+   No asumir que pregunta/reflexión basta; el objetivo es variar el medio.
+
 ## Lo que debe decidir la búsqueda (y quedar escrito)
 
 | Decisión | Dónde se usa |
 | --- | --- |
 | ¿Simulación, worked example (Buggy/Guided), experimento mental, timeline, critique…? | Slide "Experiment" (§7.3) |
+| ¿Qué widget de la paleta (§6.5) encaja — `canvas`, `logic_truth`, `debate` — o hay que CREAR uno nuevo? | Slide "Experiment"/"Reflection" |
 | ¿Conocimiento previo bajo o alto? → elegir Guided vs. Buggy (EVIDENCE.md A2) | Slide "Experiment" |
 | ¿Hay misconceptions conocidas para este concepto? | Slide "Challenge" (§7.1) |
 | ¿Existe un concepto inventory / prueba diagnóstica publicada? | Slide "Quiz" / pre-post (§7.9) |

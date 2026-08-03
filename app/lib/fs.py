@@ -337,6 +337,38 @@ def recompute_accuracy(lesson_id: str) -> dict[str, Any]:
 
 
 # ---------------------------------------------------------------------------
+# widgets (estado de herramientas interactivas por lección)
+# ---------------------------------------------------------------------------
+
+def widget_state_path(lesson_id: str, widget_id: str) -> Path | None:
+    if not _SAFE_NAME.match(lesson_id) or not _SAFE_NAME.match(widget_id):
+        return None
+    return (ROOT / "widgets" / lesson_id / f"{widget_id}.json").resolve()
+
+
+def save_widget_state(lesson_id: str, widget_id: str, data: dict[str, Any]) -> bool:
+    path = widget_state_path(lesson_id, widget_id)
+    if path is None:
+        return False
+    path.parent.mkdir(parents=True, exist_ok=True)
+    try:
+        path.write_text(json.dumps(data, ensure_ascii=False, indent=2), encoding="utf-8")
+        return True
+    except Exception:
+        return False
+
+
+def load_widget_state(lesson_id: str, widget_id: str) -> dict[str, Any] | None:
+    path = widget_state_path(lesson_id, widget_id)
+    if path is None or not path.is_file():
+        return None
+    try:
+        return json.loads(path.read_text(encoding="utf-8"))
+    except Exception:
+        return None
+
+
+# ---------------------------------------------------------------------------
 # media
 # ---------------------------------------------------------------------------
 

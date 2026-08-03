@@ -18,10 +18,20 @@
 
 <pegar texto útil>
 
-## 3. Decisión pedagógica
+## 3. Formas varias de presentar el concepto (regla obligatoria, §5.2)
+
+Listar al menos 3 formas alternativas y marcar la elegida (o la combinación):
+
+- [ ] **A**: <p.ej. lienzo/grafo de conceptos (widget `canvas`)>
+- [ ] **B**: <p.ej. manipulación simbólica (widget `logic_truth` / deducción)>
+- [ ] **C**: <p.ej. juego / debate (widget `debate`) / timeline / simulación>
+- [ ] **D**: <otra forma propia — si ninguna encaja, CREAR la herramienta (§5.2)>
+- **Elegida**: <A | B | C | A+B | …> — razón: <por qué es la más rica para este concepto>
+
+## 4. Decisión pedagógica
 
 - **Medio de Experiment**: <simulación | worked example Buggy | worked example
-  Guided | experimento mental | timeline | critique | …>
+  Guided | experimento mental | lienzo | tabla de verdad | debate | timeline | critique | …>
 - **Razón** (qué dice la evidencia): <cómo la evidencia justifica esta elección>
 - **Conocimiento previo del estudiante**: <bajo → Guided | alto → Buggy>
 - **Misconceptions conocidas**:
@@ -30,7 +40,7 @@
 - **Concept inventory / prueba diagnóstica publicada**: <sí/no + referencia>
 - **Prerrequisitos** (para Generalization/grafo): <lista>
 
-## 4. Referencias
+## 5. Referencias
 
 - arXiv: <ID(s)>
 - URLs: <enlaces>

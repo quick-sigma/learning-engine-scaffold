@@ -1,0 +1,48 @@
+{% if widget %}
+{% set vars = widget.variables | default([]) %}
+{% set n = vars | length %}
+<div class="widget logic-widget"
+     data-widget="logic_truth"
+     data-widget-id="{{ slide.id }}"
+     data-lesson="{{ lesson_id }}"
+     data-formula='{{ widget.formula | default("") | tojson }}'
+     data-variables='{{ vars | tojson }}'
+     data-solution='{{ widget.solution | default([]) | tojson }}'
+     data-task="{{ widget.task or '' }}">
+
+  <p class="logic-formula">{{ widget.formula }}</p>
+  {% if widget.instructions %}
+    <p class="instructions">{{ widget.instructions }}</p>
+  {% endif %}
+
+  <table class="truth-table" data-truth-table>
+    <thead>
+      <tr>
+        {% for v in vars %}<th scope="col">{{ v }}</th>{% endfor %}
+        <th class="target-col" scope="col">{{ widget.formula }}</th>
+      </tr>
+    </thead>
+    <tbody data-truth-body>
+      {% for i in range(2 ** n) %}
+      <tr>
+        {% for j in range(n) %}
+          {% set bit = ((i // (2 ** (n - 1 - j))) % 2) %}
+          <td data-var-val="{{ 'T' if bit else 'F' }}">{{ 'T' if bit else 'F' }}</td>
+        {% endfor %}
+        <td class="target-col">
+          <button type="button" class="truth-toggle" data-val="" aria-label="Valor de {{ widget.formula }} en fila {{ loop.index }}">·</button>
+        </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+
+  <div class="logic-actions">
+    <button type="button" class="btn" data-logic-check>Comprobar</button>
+    <button type="button" class="btn btn-ghost" data-logic-hint>Pista</button>
+    <button type="button" class="btn btn-ghost" data-logic-reset>Reiniciar</button>
+    <span class="logic-score" data-logic-score aria-live="polite"></span>
+  </div>
+  <div class="widget-feedback" data-logic-feedback aria-live="polite"></div>
+</div>
+{% endif %}

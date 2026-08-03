@@ -7,9 +7,32 @@ from lib import fs, types
 router = APIRouter()
 
 
+def _append_to_note(lesson_id: str, section: str, text: str) -> None:
+    existing = fs.get_note(lesson_id)
+    if not existing:
+        existing = f"# Notas de {lesson_id}\n"
+    existing = existing.rstrip() + f"\n\n## {section}\n{text}\n"
+    fs.save_note(lesson_id, existing)
+
+
 @router.post("/api/telemetry")
 def telemetry(ev: types.TelemetryEvent):
     fs.append_response(ev.lesson_id, ev.model_dump(exclude_none=True))
+    return {"ok": True}
+
+
+@router.post("/api/widget/{lesson_id}/{widget_id}")
+def widget_state(lesson_id: str, widget_id: str, payload: types.WidgetState):
+    fs.save_widget_state(lesson_id, widget_id, payload.state)
+    fs.append_response(
+        lesson_id,
+        {
+            "ev": payload.ev,
+            "widget": widget_id,
+            "state": payload.state,
+            "ts": fs.now_ms(),
+        },
+    )
     return {"ok": True}
 
 
@@ -20,14 +43,6 @@ def prediction(lesson_id: str, payload: types.Prediction):
         {"ev": "prediction", "q": payload.q, "answer": payload.answer, "ts": fs.now_ms()},
     )
     return {"ok": True}
-
-
-def _append_to_note(lesson_id: str, section: str, text: str) -> None:
-    existing = fs.get_note(lesson_id)
-    if not existing:
-        existing = f"# Notas de {lesson_id}\n"
-    existing = existing.rstrip() + f"\n\n## {section}\n{text}\n"
-    fs.save_note(lesson_id, existing)
 
 
 @router.post("/api/prediction_form/{lesson_id}", response_class=HTMLResponse)

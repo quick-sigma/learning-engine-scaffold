@@ -8,6 +8,8 @@
   <link rel="stylesheet" href="/static/vendor/reveal/reveal.css">
   <link rel="stylesheet" href="/static/vendor/reveal/theme/black.css">
   <link rel="stylesheet" href="/static/css/style.css">
+  <link rel="stylesheet" href="/static/css/forms.css">
+  <link rel="stylesheet" href="/static/css/widgets.css">
   <script src="/static/vendor/reveal/reveal.js"></script>
   <script src="/static/js/htmx.min.js" defer></script>
 </head>
@@ -82,11 +84,23 @@
               </div>
             </form>
           {% endif %}
+
+          {% if slide.widget %}
+            {% set widget = slide.widget %}
+            {% if widget.type == "canvas" %}
+              {% include "partials/widget_canvas.html" %}
+            {% elif widget.type == "logic_truth" %}
+              {% include "partials/widget_logic_truth.html" %}
+            {% elif widget.type == "debate" %}
+              {% include "partials/widget_debate.html" %}
+            {% endif %}
+          {% endif %}
         </section>
       {% endfor %}
     </div>
   </div>
   <script src="/static/js/lesson-deck.js"></script>
   <script src="/static/js/audio-player.js"></script>
+  <script src="/static/js/lesson-widgets.js" defer></script>
 </body>
 </html>

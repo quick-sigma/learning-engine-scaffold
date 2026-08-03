@@ -1,0 +1,222 @@
+/* ============================================================
+   Widgets interactivos: lienzo, lógica (tabla de verdad), debate
+   ============================================================ */
+
+.widget {
+  border: 1px solid #2a313a;
+  border-radius: 14px;
+  background: rgba(20, 24, 29, 0.65);
+  padding: 0.9rem 1rem;
+  margin-top: 1rem;
+}
+
+.widget-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.7rem;
+}
+.widget-toolbar .widget-hint { margin-left: auto; }
+.widget-feedback { margin-top: 0.7rem; font-size: 0.9rem; }
+.widget-feedback .ok { color: var(--ok); font-weight: 600; }
+.widget-feedback .ko { color: var(--ko); font-weight: 600; }
+
+/* --- Lienzo de conceptos ------------------------------------- */
+.canvas-wrap {
+  position: relative;
+  border: 1px dashed #3a434f;
+  border-radius: 12px;
+  background:
+    radial-gradient(circle at 1px 1px, rgba(255, 255, 255, 0.06) 1px, transparent 0) 0 0 / 24px 24px;
+  min-height: 380px;
+  overflow: hidden;
+  cursor: grab;
+}
+.canvas-wrap:active { cursor: grabbing; }
+
+.canvas-svg { display: block; width: 100%; height: 100%; min-height: 380px; touch-action: none; }
+
+.canvas-node {
+  cursor: grab;
+  user-select: none;
+}
+.canvas-node:active { cursor: grabbing; }
+.canvas-node circle { transition: stroke-width 0.1s ease; }
+.canvas-node:hover circle { stroke-width: 3; }
+.canvas-node.selected circle { stroke-width: 3; }
+.canvas-node text {
+  font-size: 13px;
+  fill: #e6e9ed;
+  pointer-events: none;
+  text-anchor: middle;
+}
+
+.canvas-edge {
+  fill: none;
+  stroke-width: 2;
+  stroke: #7c8794;
+  pointer-events: none;
+}
+.canvas-edge-label {
+  font-size: 11px;
+  fill: #9aa4af;
+  text-anchor: middle;
+  paint-order: stroke;
+  stroke: #14181e;
+  stroke-width: 4px;
+  stroke-linejoin: round;
+}
+
+.canvas-ghost { stroke: var(--accent); stroke-dasharray: 6 4; fill: none; stroke-width: 2; pointer-events: none; }
+
+.canvas-menu {
+  position: absolute;
+  z-index: 5;
+  display: grid;
+  gap: 0.25rem;
+  background: #1a1f26;
+  border: 1px solid #3a434f;
+  border-radius: 10px;
+  padding: 0.4rem;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  min-width: 150px;
+}
+.canvas-menu button {
+  font: inherit;
+  font-size: 0.82rem;
+  text-align: left;
+  padding: 0.4rem 0.7rem;
+  border: none;
+  border-radius: 6px;
+  background: transparent;
+  color: #e6e9ed;
+  cursor: pointer;
+}
+.canvas-menu button:hover { background: rgba(96, 165, 250, 0.14); color: #93c5fd; }
+.canvas-menu button.danger:hover { background: rgba(248, 113, 113, 0.14); color: #f87171; }
+
+.canvas-add-form {
+  display: flex;
+  gap: 0.4rem;
+  align-items: center;
+}
+.canvas-add-form input { flex: 1; min-width: 0; }
+
+/* --- Lógica: tabla de verdad --------------------------------- */
+.logic-truth { max-width: 100%; }
+.logic-truth .logic-formula {
+  font-family: ui-monospace, "JetBrains Mono", Menlo, monospace;
+  font-size: 1.05rem;
+  color: #93c5fd;
+  text-align: center;
+  margin-bottom: 0.8rem;
+}
+
+.truth-table { border-collapse: collapse; margin: 0 auto; }
+.truth-table th, .truth-table td {
+  border: 1px solid #3a434f;
+  padding: 0.35rem 0.6rem;
+  text-align: center;
+  font-family: ui-monospace, Menlo, monospace;
+  font-size: 0.85rem;
+  min-width: 2.4rem;
+}
+.truth-table th { color: #9aa4af; font-weight: 600; }
+.truth-table .target-col { border-left: 2px solid var(--accent); }
+
+.truth-toggle {
+  appearance: none;
+  -webkit-appearance: none;
+  border: none;
+  background: transparent;
+  color: #e6e9ed;
+  font-family: inherit;
+  font-size: 0.9rem;
+  font-weight: 700;
+  width: 100%;
+  cursor: pointer;
+  border-radius: 6px;
+  padding: 0.15rem;
+  transition: background 0.1s ease;
+}
+.truth-toggle:hover { background: rgba(96, 165, 250, 0.12); }
+.truth-toggle:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.truth-toggle[data-val=""] { color: #6b7280; }
+.truth-toggle[data-val="T"] { color: var(--ok); }
+.truth-toggle[data-val="F"] { color: var(--ko); }
+.truth-toggle.correct { box-shadow: inset 0 0 0 2px var(--ok); }
+.truth-toggle.incorrect { box-shadow: inset 0 0 0 2px var(--ko); background: rgba(248, 113, 113, 0.1); }
+
+.logic-actions { display: flex; flex-wrap: wrap; gap: 0.5rem; align-items: center; justify-content: center; margin-top: 0.8rem; }
+.logic-score { font-weight: 700; }
+
+/* --- Debate socrático ---------------------------------------- */
+.debate {
+  display: flex;
+  flex-direction: column;
+  gap: 0.7rem;
+  max-height: 55vh;
+  overflow-y: auto;
+  padding-right: 0.3rem;
+}
+
+.debate-msg {
+  max-width: 85%;
+  padding: 0.6rem 0.9rem;
+  border-radius: 12px;
+  font-size: 0.92rem;
+  line-height: 1.5;
+}
+.debate-msg.agent {
+  align-self: flex-start;
+  background: rgba(96, 165, 250, 0.1);
+  border: 1px solid rgba(96, 165, 250, 0.3);
+  color: #e6e9ed;
+  border-bottom-left-radius: 3px;
+}
+.debate-msg.student {
+  align-self: flex-end;
+  background: rgba(34, 197, 94, 0.1);
+  border: 1px solid rgba(34, 197, 94, 0.3);
+  color: #e6e9ed;
+  border-bottom-right-radius: 3px;
+}
+
+.debate-turn { display: flex; flex-direction: column; gap: 0.5rem; }
+.debate-prompt { font-size: 0.85rem; color: #9aa4af; }
+.debate-options { display: grid; gap: 0.4rem; }
+.debate-opt {
+  font: inherit;
+  font-size: 0.88rem;
+  text-align: left;
+  padding: 0.55rem 0.8rem;
+  border: 1px solid #3a434f;
+  border-radius: 10px;
+  background: #101419;
+  color: #e6e9ed;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.debate-opt:hover { border-color: var(--accent); background: rgba(96, 165, 250, 0.08); }
+.debate-opt:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+.debate-opt.picked { border-color: var(--ok); background: rgba(34, 197, 94, 0.1); }
+
+.debate-free { display: grid; gap: 0.4rem; }
+.debate-free .debate-reply { display: flex; gap: 0.5rem; }
+.debate-reply textarea { flex: 1; }
+
+.debate-end { text-align: center; padding: 0.5rem; color: var(--ok); font-weight: 700; }
+.debate-role {
+  font-size: 0.72rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  margin-bottom: 0.15rem;
+}
+.debate-role.agent { color: #93c5fd; }
+.debate-role.student { color: #86efac; }
+
+/* --- Feedback tras guardar widget ---------------------------- */
+.widget-saved { display: flex; align-items: center; gap: 0.4rem; }
+.widget-saved .ok { margin: 0; }

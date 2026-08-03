@@ -49,6 +49,8 @@ learning/
     misconceptions/          # errores recurrentes
     profiles/                # perfil exportado por lección
     media/                   # assets extraídos de la fuente
+    widgets/                 # estado persistente de widgets (lienzo, tabla,
+                             # debate) por lección — escribe la app, lee opencode
     concepts/                # una nota markdown por concepto (plantilla
                              # _template.md) — el grafo crece con la VOZ del
                              # usuario: cada conceptos/<slug>.md tiene una
@@ -152,6 +154,36 @@ rm -f app/tmp/tmp-slide.wav
 | POST | `/api/notes/{id}` | Guardar nota (form HTMX) → `notes/*.md` |
 | POST | `/api/quiz/{id}` | Respuesta de quiz (form HTMX) → `accuracy/*.json` |
 | POST | `/api/prediction/{id}` | Predicción del estudiante (JSON) |
+| POST | `/api/widget/{lesson}/{widget}` | Guardar estado de un widget (JSON) → `widgets/*.json` + telemetría |
+
+## Widgets interactivos (formas varias de explicar)
+
+Además de preguntas/quiz/reflexión, cada slide puede incluir un **widget**
+interactivo añadiendo `"widget": { "type": … }`:
+
+```json
+{
+  "id": "canvas",
+  "stage": "Experiment",
+  "widget": {
+    "type": "canvas",
+    "task": "Conecta los conceptos",
+    "concepts": ["Utilitarismo", "Deontología", "Consecuencias"],
+    "relations": ["implica", "contradice", "presupone", "objeta", "apoya"]
+  }
+}
+```
+
+| Tipo | Descripción |
+| --- | --- |
+| `canvas` | Lienzo libre de conceptos: nodos arrastrables + aristas tipadas (argument mapping, grafo de conceptos). |
+| `logic_truth` | Tabla de verdad interactiva con evaluador proposicional integrado (`formula`, `variables`). |
+| `debate` | Debate socrático por turnos contra el agente (`thesis`, `opening`, `turns[]`). |
+
+El scaffold **no es un límite**: el agente está autorizado a crear widgets
+nuevos (partial `widget_<tipo>.html` + JS en `lesson-widgets.js` + CSS en
+`widgets.css` + endpoint de guardado si aplica) y a devolverlos a este repo con
+push, siguiendo el patrón de los existentes.
 
 ## Reglas no negociables
 
