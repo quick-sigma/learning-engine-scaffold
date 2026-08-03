@@ -853,6 +853,123 @@
     draw();
   }
 
+  /* ==================================================================
+     Widget 6: Saturación semántica — repetir una palabra hasta que
+     pierde su significado, y recuperarla al ponerla en contexto.
+     Enacta la «lucidez destructiva» de Polanyi: atender a las
+     particularidades borra el significado; reintegrar lo restaura.
+     ================================================================== */
+  function initSatiation(widget) {
+    var root = widget;
+    var lessonId = root.dataset.lesson;
+    var widgetId = root.dataset.widgetId;
+    var words = [];
+    try { words = JSON.parse(root.dataset.words || '[]'); } catch (e) { words = []; }
+    var wordEl = root.querySelector('[data-sat-word]');
+    var status = root.querySelector('[data-sat-status]');
+    var countEl = root.querySelector('[data-sat-count]');
+    var question = root.querySelector('[data-sat-question]');
+    var feedback = root.querySelector('[data-sat-feedback]');
+    var btnRepeat = root.querySelector('[data-sat-repeat]');
+    var btnContext = root.querySelector('[data-sat-context]');
+    var btnNext = root.querySelector('[data-sat-next]');
+
+    var idx = 0;
+    var count = 0;
+    var lostMeaning = false;
+    var audio = null;
+
+    function stopAudio() {
+      if (audio) { audio.pause(); audio.currentTime = 0; }
+    }
+
+    function playFile(name, cb) {
+      if (!name) { if (cb) cb(); return; }
+      stopAudio();
+      audio = new Audio('/lessons/' + lessonId + '/audio/' + name);
+      audio.addEventListener('ended', function () { if (cb) cb(); }, { once: true });
+      audio.addEventListener('error', function () { if (cb) cb(); }, { once: true });
+      audio.play().catch(function () { if (cb) cb(); });
+      telemetry({ lesson_id: lessonId, ev: 'satiation_audio', widget: widgetId, file: name });
+    }
+
+    function renderWord() {
+      var w = words[idx];
+      wordEl.textContent = w ? w.word : '—';
+      count = 0;
+      countEl.textContent = '0';
+      lostMeaning = false;
+      question.hidden = true;
+      btnContext.hidden = true;
+      btnNext.hidden = true;
+      btnRepeat.hidden = false;
+      btnRepeat.textContent = 'Repetir palabra';
+      status.textContent = w
+        ? 'Pulsa «Repetir palabra» y di la palabra mentalmente cada vez que la oigas. Fíjate en lo que le pasa al significado.'
+        : 'No hay palabras cargadas para este experimento.';
+      status.className = 'sat-status';
+      feedback.textContent = '';
+      telemetry({ lesson_id: lessonId, ev: 'satiation_word', widget: widgetId, idx: idx, word: w ? w.word : '' });
+    }
+
+    btnRepeat.addEventListener('click', function () {
+      var w = words[idx];
+      if (!w) return;
+      count++;
+      countEl.textContent = String(count);
+      playFile(w.wordAudio, function () {});
+      if (count >= 8 && !lostMeaning) {
+        lostMeaning = true;
+        status.textContent = 'Sigue repitiéndola unas cuantas veces más. Cuando lo hayas hecho, responde: ¿qué le ha pasado a la palabra?';
+        status.className = 'sat-status sat-on';
+        question.hidden = false;
+        btnRepeat.textContent = 'Seguir repitiendo';
+        btnContext.hidden = true;
+        telemetry({ lesson_id: lessonId, ev: 'satiation_threshold', widget: widgetId, count: count });
+      }
+    });
+
+    btnContext.addEventListener('click', function () {
+      var w = words[idx];
+      if (!w) return;
+      status.textContent = 'Ahora, en su contexto: «' + w.context + '». Escúchala y dime: ¿volvió el significado?';
+      status.className = 'sat-status sat-off';
+      playFile(w.contextAudio, function () {});
+      feedback.textContent = 'El significado volvió: al usarla en una frase, la palabra recupera su sentido.';
+      feedback.className = 'widget-feedback ok';
+      telemetry({ lesson_id: lessonId, ev: 'satiation_context', widget: widgetId, idx: idx });
+      btnContext.hidden = true;
+    });
+
+    btnNext.addEventListener('click', function () {
+      idx = (idx + 1) % words.length;
+      renderWord();
+    });
+
+    root.querySelector('[data-sat-save]').addEventListener('click', function () {
+      var sel = question.querySelector('input[name="sat-what"]:checked');
+      if (!sel) {
+        feedback.textContent = 'Elige una de las dos opciones antes de guardar.';
+        feedback.className = 'widget-feedback';
+        return;
+      }
+      var val = sel.value;
+      saveWidget(lessonId, widgetId, 'satiation', { idx: idx, word: words[idx] ? words[idx].word : '', count: count, lost: val === 'perdida' }, function () {});
+      telemetry({ lesson_id: lessonId, ev: 'satiation_answer', widget: widgetId, val: val, count: count });
+      if (val === 'perdida') {
+        feedback.textContent = '✓ Exacto: repetir la palabra hizo que perdiera su significado. Atender a su sonido destruyó lo que significaba. Ahora pulsa «Ponerla en contexto».';
+        feedback.className = 'widget-feedback ok';
+        btnContext.hidden = false;
+      } else {
+        feedback.textContent = 'Piénsalo de nuevo: escúchala una vez más y responde con sinceridad. Si te parece rara o sin sentido, esa es la señal.';
+        feedback.className = 'widget-feedback';
+      }
+      btnNext.hidden = words.length > 1;
+    });
+
+    renderWord();
+  }
+
   /* ------------------------------------------------------------------
      Arranque: los widgets viven dentro del deck reveal.js, pero el evento
      'ready' puede haberse disparado antes de que este script (defer) corra.
@@ -877,6 +994,7 @@
     once('[data-widget="debate"]', initDebate);
     once('[data-widget="hefferline"]', initHefferline);
     once('[data-widget="probe"]', initProbe);
+    once('[data-widget="satiation"]', initSatiation);
   }
 
   function boot() {

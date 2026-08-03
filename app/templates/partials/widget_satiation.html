@@ -1,0 +1,38 @@
+{% if widget %}
+<div class="widget sat-widget"
+     data-widget="satiation"
+     data-widget-id="{{ slide.id }}"
+     data-lesson="{{ lesson_id }}"
+     data-words='{{ widget.words | default([]) | tojson }}'
+     data-task="{{ widget.task or '' }}">
+
+  <p class="instructions sat-task">{{ widget.task }}</p>
+
+  <div class="sat-stage" data-sat-stage>
+    <div class="sat-word-display" data-sat-word aria-live="polite">—</div>
+
+    <p class="sat-status" data-sat-status aria-live="polite">Pulsa «Repetir palabra» para empezar.</p>
+
+    <div class="sat-actions">
+      <button type="button" class="btn" data-sat-repeat>Repetir palabra</button>
+      <button type="button" class="btn btn-sm" data-sat-context hidden>Ponerla en contexto</button>
+      <button type="button" class="btn btn-sm" data-sat-next hidden>Siguiente palabra</button>
+    </div>
+
+    <div class="sat-counter">
+      Repeticiones: <strong data-sat-count>0</strong>
+    </div>
+
+    <div class="sat-question" data-sat-question hidden>
+      <p class="instructions">¿Qué le ha pasado a la palabra?</p>
+      <label class="quiz-opt"><input type="radio" name="sat-what" value="perdida"> Ha perdido su significado; suena extraña</label>
+      <label class="quiz-opt"><input type="radio" name="sat-what" value="igual"> Sigue significando lo mismo de siempre</label>
+      <div class="sat-actions">
+        <button type="button" class="btn btn-sm" data-sat-save>Guardar respuesta</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="widget-feedback" data-sat-feedback aria-live="polite"></div>
+</div>
+{% endif %}

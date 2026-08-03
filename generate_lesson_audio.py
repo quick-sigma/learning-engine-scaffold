@@ -96,6 +96,15 @@ def main() -> None:
                 if opt_text:
                     synth(opt_name.rsplit(".", 1)[0], opt_text, AUDIO_DIR)
 
+        # audio de widgets: saturación semántica (palabra suelta y en contexto)
+        w = s.get("widget") or {}
+        if w.get("type") == "satiation":
+            for wi, wd in enumerate(w.get("words") or []):
+                if wd.get("word_audio"):
+                    synth(wd["word_audio"].rsplit(".", 1)[0], wd["word"], AUDIO_DIR)
+                if wd.get("context_audio"):
+                    synth(wd["context_audio"].rsplit(".", 1)[0], f"{wd['word']}. {wd['context']}", AUDIO_DIR)
+
     gloss = json.loads((ROOT / "glossary" / "glossary.json").read_text())
     for g in gloss:
         if g["lesson"] == lesson_id and g.get("audio"):
