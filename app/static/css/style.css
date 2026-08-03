@@ -198,17 +198,160 @@ a { color: var(--accent); }
 .note-status { font-size: 0.85rem; }
 .ok { color: var(--ok); font-size: 0.85rem; font-weight: 600; }
 
-/* reveal.js deck */
-.reveal { background: #0b0e12 !important; }
-.stage-tag {
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  font-size: 0.8rem !important;
-  color: var(--accent);
-  margin-bottom: 0.4rem !important;
+/* ============================================================
+   reveal.js deck — cada slide ocupa el 100% del viewport
+   ============================================================ */
+.reveal-viewport { background: #0b0e12; }
+
+.reveal {
+  background: #0b0e12 !important;
+  --r-main-font-size: 22px;
+  --r-heading1-size: 2em;
+  --r-heading2-size: 1.45em;
+  --r-heading3-size: 1.2em;
+  --r-heading4-size: 1.05em;
+  --r-block-margin: 14px;
+  --r-heading-margin: 0 0 16px 0;
+  --r-heading-text-transform: none;
+  --r-heading-line-height: 1.25;
+  --r-heading-font-weight: 700;
 }
-.slide-text { max-width: 34rem; margin: 0 auto; }
-.instructions { color: #9aa4af; font-size: 0.85rem; }
+
+.reveal .slides section {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  overflow-x: hidden;
+  overflow-y: auto;
+  box-sizing: border-box;
+  padding: 5vh 6vw 8vh;
+  text-align: left;
+}
+
+.reveal .slides section > * {
+  max-width: 46rem;
+  margin-left: auto;
+  margin-right: auto;
+}
+
+.reveal .slides section h2 {
+  text-align: center;
+  letter-spacing: -0.01em;
+  margin-bottom: 1.2rem;
+}
+
+.reveal .stage-tag {
+  text-transform: uppercase;
+  letter-spacing: 0.14em;
+  font-size: 0.72rem !important;
+  font-weight: 700;
+  color: var(--accent);
+  text-align: center;
+  margin: 0 auto 0.8rem !important;
+}
+
+.reveal .slide-text {
+  line-height: 1.5;
+  color: #e9ecf1;
+}
+
+.reveal .instructions {
+  color: #aab2bd;
+  font-size: 0.88em;
+  line-height: 1.5;
+  border-left: 3px solid var(--accent);
+  padding: 0.1rem 0 0.1rem 0.9rem;
+  margin-top: 0.8rem;
+}
+
+.reveal .audio-play {
+  display: block;
+  width: fit-content;
+  font-size: 0.78rem;
+  padding: 0.32rem 0.8rem;
+  margin: 0.7rem auto 0;
+  background: rgba(96, 165, 250, 0.12);
+  border: 1px solid rgba(96, 165, 250, 0.35);
+  color: #93c5fd;
+}
+.reveal .audio-play:hover { background: rgba(96, 165, 250, 0.22); }
+
+/* Formularios dentro del deck */
+.reveal .quiz,
+.reveal .prediction,
+.reveal .experiment,
+.reveal .reflection {
+  max-width: 46rem;
+  margin: 1.1rem auto 0;
+  padding: 1rem 1.1rem;
+  border: 1px solid #2a313a;
+  border-radius: 14px;
+  background: rgba(20, 24, 29, 0.65);
+}
+
+.reveal .quiz-q,
+.reveal .prediction-q {
+  font-weight: 600;
+  margin-bottom: 0.7rem;
+}
+
+.reveal .quiz-opt {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.6rem;
+  padding: 0.55rem 0.8rem;
+  margin: 0.4rem 0;
+  border: 1px solid #2a313a;
+  border-radius: 10px;
+  cursor: pointer;
+  transition: border-color 0.15s ease, background 0.15s ease;
+}
+.reveal .quiz-opt:hover { border-color: var(--accent); background: rgba(96, 165, 250, 0.08); }
+.reveal .quiz-opt input { margin-top: 0.25rem; }
+
+.reveal .quiz-actions {
+  display: flex;
+  align-items: center;
+  gap: 1rem;
+  margin-top: 0.9rem;
+}
+.reveal .quiz-actions .btn { font-size: 0.85rem; }
+.reveal .quiz-result { font-weight: 700; margin-top: 0.6rem; }
+.reveal .quiz-result.ok { color: var(--ok); }
+.reveal .quiz-result.ko { color: var(--ko); }
+
+.reveal .experiment-prompt {
+  display: block;
+  font-weight: 600;
+  margin-bottom: 0.5rem;
+}
+
+.reveal .experiment textarea,
+.reveal .reflection textarea {
+  width: 100%;
+  margin: 0.4rem 0 0.6rem;
+  padding: 0.7rem;
+  border: 1px solid #2a313a;
+  border-radius: 10px;
+  background: #101419;
+  color: #e6e9ed;
+  font: inherit;
+  font-size: 0.9em;
+  resize: vertical;
+  line-height: 1.6;
+}
+.reveal .experiment textarea:focus,
+.reveal .reflection textarea:focus { outline: 2px solid var(--accent); }
+
+.reveal .prediction-result,
+.reveal .note-status { font-size: 0.85rem; }
+
+.reveal figure { margin: 0.8rem auto 0; max-width: 46rem; text-align: center; }
+.reveal figure img { max-width: 100%; max-height: 40vh; border-radius: 12px; }
+.reveal figcaption { font-size: 0.8rem; color: #9aa4af; margin-top: 0.4rem; }
+
 .back-link {
   position: fixed;
   top: 1rem;
@@ -222,45 +365,3 @@ a { color: var(--accent); }
   border-radius: 999px;
 }
 .back-link:hover { color: #fff; }
-
-/* Quiz */
-.quiz { max-width: 32rem; margin: 1rem auto 0; text-align: left; }
-.quiz-q { font-weight: 600; margin-bottom: 0.6rem; }
-.quiz-opt {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-  padding: 0.5rem 0.8rem;
-  margin: 0.3rem 0;
-  border: 1px solid #2a313a;
-  border-radius: var(--radius);
-  cursor: pointer;
-}
-.quiz-opt:hover { border-color: var(--accent); }
-.quiz-actions { display: flex; align-items: center; gap: 1rem; margin-top: 0.8rem; }
-.quiz-result { font-weight: 700; }
-.quiz-result.ok { color: var(--ok); }
-.quiz-result.ko { color: var(--ko); }
-
-/* Prediction / Experiment / Reflection (deck) */
-.prediction, .experiment, .reflection { max-width: 34rem; margin: 1rem auto 0; text-align: left; }
-.prediction-q { font-weight: 600; margin-bottom: 0.6rem; }
-.experiment-prompt { display: block; font-weight: 600; margin-bottom: 0.5rem; }
-.experiment textarea, .reflection textarea {
-  width: 100%;
-  margin: 0.4rem 0 0.6rem;
-  padding: 0.7rem;
-  border: 1px solid #2a313a;
-  border-radius: var(--radius);
-  background: #14181d;
-  color: #e6e9ed;
-  font: inherit;
-  font-size: 0.92rem;
-  resize: vertical;
-  line-height: 1.6;
-}
-.experiment textarea:focus, .reflection textarea:focus { outline: 2px solid var(--accent); }
-.prediction-result { font-size: 0.85rem; }
-
-figure img { max-width: 100%; max-height: 38vh; border-radius: var(--radius); }
-figcaption { font-size: 0.8rem; color: #9aa4af; }

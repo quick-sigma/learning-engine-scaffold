@@ -1,25 +1,138 @@
 {
+  "lesson_id": "lesson-001",
+  "title": "Sabemos más de lo que podemos decir",
+  "concept": "conocimiento-tacito",
+  "source": "Prólogo, págs. 7-15",
+  "difficulty": 0.4,
   "slides": [
     {
       "id": "challenge",
       "stage": "Challenge",
-      "title": "El problema",
-      "text": "¿Por qué la luz blanca se separa en colores al pasar por un prisma?",
-      "audio": ""
+      "title": "El rostro que no sabes describir",
+      "text": "Estás en una estación de tren abarrotada. A treinta metros, entre cientos de personas, reconoces al instante el rostro de tu mejor amiga. No dudas ni un segundo. Pero si alguien te pidiera escribir exactamente qué rasgos usaste —la forma precisa de la nariz, el ángulo de la mandíbula, la distancia entre los ojos—, no podrías. Aun así, la reconoces. ¿Reconocerla es conocimiento? Y si no puedes decirlo… ¿lo sabes de verdad?",
+      "audio": "slide-01.mp3"
+    },
+    {
+      "id": "prediction",
+      "stage": "Prediction",
+      "title": "Comprométete con tu hipótesis",
+      "text": "Antes de que nadie te explique nada, decide con qué afirmación te comprometes. Tu respuesta quedará registrada en tu perfil de aprendizaje.",
+      "audio": "slide-02.mp3",
+      "prediction": {
+        "question": "Reconocer un rostro sin poder describir los rasgos que usas es…",
+        "options": [
+          "Conocimiento real, aunque no se pueda articular en palabras",
+          "Un reflejo automático sin valor cognitivo: si no se puede decir, no se conoce",
+          "Conocimiento incompleto que la ciencia puede y debe formalizar por completo"
+        ],
+        "audio": "pred-02.mp3"
+      }
+    },
+    {
+      "id": "experiment",
+      "stage": "Experiment",
+      "title": "El experimento del rostro",
+      "text": "Trabaja con un rostro que conozcas muy bien. Intenta escribir la «regla de reconocimiento» más exacta posible: proporciones, ángulos, distancias. Sé tan preciso que alguien que nunca viera esa cara pudiera reconocerla usando solo tu texto.",
+      "audio": "slide-03.mp3",
+      "instructions": "1. Elige un rostro que conozcas muy bien, una persona famosa sirve. 2. Escribe la lista más completa de rasgos medibles que puedas. 3. Imagina un robot que debe reconocerlo usando SOLO tu lista. 4. Pregúntate: ¿qué «sabías» al reconocerlo que no está en tu lista?",
+      "audio_instr": "instr-03.mp3",
+      "experiment": {
+        "prompt": "Escribe tu regla de reconocimiento (y lo que se te resiste a medir):",
+        "audio": "exp-03.mp3"
+      }
+    },
+    {
+      "id": "observation",
+      "stage": "Observation",
+      "title": "Lo que no pudo decirse",
+      "text": "Probablemente escribiste una lista de rasgos… y notaste que no basta. Aunque intentaras ser exacto, algo se te escapa: la manera en que los rasgos se integran en un todo que reconocemos de un golpe. Es el mismo fenómeno que estudió la psicología de la Gestalt: integramos las particularidades de una fisonomía sin ser capaces de identificarlas una a una.",
+      "audio": "slide-04.mp3"
+    },
+    {
+      "id": "reflection",
+      "stage": "Reflection",
+      "title": "Explícalo con tus palabras",
+      "text": "No basta con elegir opciones. Con tus palabras: ¿por qué pudiste reconocer el rostro sin poder explicar cómo lo hiciste? ¿Qué dice eso de la idea de que «conocer es poder decir»?",
+      "audio": "slide-05.mp3",
+      "self_explain": {
+        "prompt": "Explica con tus palabras qué ocurrió en el experimento y qué implica para la definición de conocimiento:",
+        "audio": "self-05.mp3"
+      }
     },
     {
       "id": "explanation",
       "stage": "Explanation",
-      "title": "Refracción y dispersión",
-      "text": "La luz blanca es una mezcla de frecuencias. Cada frecuencia se refracta con un ángulo distinto, así que el prisma las separa.",
-      "audio": ""
+      "title": "El conocimiento tácito",
+      "text": "Polanyi resume la tesis del libro en una frase: «Podemos saber más de lo que podemos decir». Reconocer un rostro es saber: es conocimiento válido. Pero ese saber no reside en la lista de rasgos que puedes articular, sino en la integración que haces con todo tu ser. Por eso no se deja formalizar con facilidad ni expresar con palabras exactas: es conocimiento tácito.",
+      "audio": "slide-06.mp3"
     },
     {
-      "id": "quiz",
+      "id": "generalization",
+      "stage": "Generalization",
+      "title": "La paradoja de Menón",
+      "text": "Si hay conocimiento que no puede decirse, un viejo problema de Platón cambia de forma. La paradoja de Menón decía que buscar conocimiento es un absurdo: o bien ya sabes y no hace falta buscar, o bien no sabes qué buscas y no puedes esperar encontrarlo. Polanyi responde: gracias al conocimiento tácito podemos tener un conocimiento válido del problema, perseguirlo guiados por un sentido de aproximación a la solución, y anticipar válidamente las implicaciones del descubrimiento al que llegamos. Sabemos qué buscar sin poder decir qué es: eso hace posible la búsqueda.",
+      "audio": "slide-07.mp3"
+    },
+    {
+      "id": "application",
+      "stage": "Application",
+      "title": "Formalizar todo, ¿a qué precio?",
+      "text": "Polanyi extrae una implicación incómoda: «el proceso de formalizar todo el conocimiento hasta excluir cualquier conocimiento tácito es autodestructivo». Es el tipo de lucidez que destruye su materia: si solo valiera lo que puede escribirse como regla, se perdería el saber que guía al científico. Antes de responder, busca en tu vida un conocimiento que no puedas escribir: conducir, afinar un plato, diagnosticar.",
+      "audio": "slide-08.mp3",
+      "quiz": {
+        "question": "¿Cuál de estas situaciones ilustra MEJOR el conocimiento tácito?",
+        "options": [
+          "Un estudiante que recita las capitales de Europa",
+          "Una panadera que ajusta la masa «a ojo» sin poder escribir la receta exacta",
+          "Una calculadora que resuelve una raíz cuadrada",
+          "Un programador que copia una función con sintaxis perfecta"
+        ],
+        "correct": 1,
+        "audio": "quiz-08.mp3"
+      }
+    },
+    {
+      "id": "quiz-menon",
       "stage": "Quiz",
-      "title": "Pon a prueba",
-      "text": "Elige la respuesta correcta.",
-      "quiz": { "question": "¿Qué separa el prisma?", "options": ["Frecuencias", "Volúmenes", "Masas"], "correct": 0 }
+      "title": "La paradoja resuelta",
+      "text": "Recuerda la Generalization: Polanyi no niega la búsqueda ni la reduce a reglas.",
+      "audio": "slide-09.mp3",
+      "quiz": {
+        "question": "¿Cómo resuelve Polanyi la paradoja de Menón?",
+        "options": [
+          "Sostiene que la búsqueda del conocimiento es imposible",
+          "El conocimiento tácito permite saber qué buscar y sentir cuándo nos acercamos a la solución",
+          "Niega que exista conocimiento previo alguno",
+          "Propone formalizar todo el conocimiento en reglas explícitas"
+        ],
+        "correct": 1,
+        "audio": "quiz-09.mp3"
+      }
+    },
+    {
+      "id": "quiz-formalizacion",
+      "stage": "Quiz",
+      "title": "La formalización",
+      "text": "Una pista: piensa en el experimento del rostro y en lo que se perdería si todo debiera decirse.",
+      "audio": "slide-10.mp3",
+      "quiz": {
+        "question": "Según el Prólogo, formalizar todo el conocimiento hasta excluir lo tácito es…",
+        "options": [
+          "El objetivo final de la ciencia",
+          "Autodestructivo: el tipo de lucidez que destruye su materia",
+          "Imposible solo en biología",
+          "Un ideal deseable, aunque caro"
+        ],
+        "correct": 1,
+        "audio": "quiz-10.mp3"
+      }
+    },
+    {
+      "id": "mastery",
+      "stage": "Mastery",
+      "title": "El científico que descubrió lo que no se puede decir",
+      "text": "Polanyi, fisicoquímico de origen húngaro, dedicó su etapa final a la filosofía y sostuvo que sabemos más de lo que podemos decir. La parte no articulable —el conocimiento tácito— está en el corazón del descubrimiento científico, se transmite de maestro a aprendiz por la práctica y no por las reglas, y se pierde irremediablemente si se la fuerza a palabras. Tu mastery se calcula con los quizzes de esta lección. Revisa el glosario y las notas para fijar los conceptos.",
+      "audio": "slide-11.mp3"
     }
   ]
 }
