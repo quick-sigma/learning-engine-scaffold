@@ -228,6 +228,13 @@ a { color: var(--accent); }
   box-sizing: border-box;
   padding: 5vh 6vw 8vh;
   text-align: left;
+  scrollbar-width: thin;
+  scrollbar-color: rgba(255, 255, 255, 0.25) transparent;
+}
+.reveal .slides section::-webkit-scrollbar { width: 8px; }
+.reveal .slides section::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.22);
+  border-radius: 8px;
 }
 
 .reveal .slides section > * {
