@@ -77,13 +77,16 @@ def list_lessons() -> list[dict[str, Any]]:
             if first:
                 title = first
         slides: list[dict[str, Any]] = []
+        slides_root: dict[str, Any] = {"slides": []}
         if slides_file.is_file():
             try:
-                slides = json.loads(slides_file.read_text(encoding="utf-8")).get("slides", [])
+                slides_root = json.loads(slides_file.read_text(encoding="utf-8"))
+                slides = slides_root.get("slides", [])
             except Exception:
+                slides_root = {"slides": []}
                 slides = []
         acc = load_accuracy(lesson_id)
-        ready, missing_audio = lesson_audio_status(lesson_id, {"slides": slides})
+        ready, missing_audio = lesson_audio_status(lesson_id, slides_root)
         out.append(
             {
                 "id": lesson_id,
