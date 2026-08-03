@@ -51,6 +51,8 @@ learning/
     media/                   # assets extraídos de la fuente
     concepts/                # una nota markdown por concepto
     sessions.md              # diario de aprendizaje
+    research/                # marcos de enseñanza por concepto (opencode busca
+                             # en arXiv/WebFetch ANTES de escribir cada lección)
     generate_audio.py        # Kokoro TTS → WAV (ffmpeg a MP3)
 ```
 
