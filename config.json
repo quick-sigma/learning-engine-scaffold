@@ -1,26 +1,14 @@
 {
-  "source_path": "../La dimensión táctica -- Polanyi, Michael; Vergara Navarrete, Álvaro -- Instituto Juan de Mariana--Value School, 2023 -- Ediciones Deusto -- isbn13 9788423436606 -- ca88cfc33deb0cf324c118ca3cb2923b -- Anna's Archive.pdf",
-  "source_type": "pdf",
-  "total_pages": 110,
-  "current_page": 19,
-  "current_lesson": "lesson-001",
-  "current_concept": "conocimiento-tacito",
+  "source_path": "",
+  "source_type": "",
+  "total_pages": 0,
+  "current_page": 1,
+  "current_section": "",
+  "current_lesson": null,
+  "current_concept": null,
   "mastery_score": 0,
-  "learning_goals": [
-    "Comprender el concepto de conocimiento tácito: saber más de lo que se puede decir, estructura de-from-to (desde-hacia) y sus implicaciones",
-    "Filosofía de la ciencia: cómo desafía Polanyi el escepticismo y el positivismo como base del método científico",
-    "Paradoja de Menón y emergencia: la respuesta de Polanyi a Platón y la emergencia de niveles superiores de realidad",
-    "Sociedad de exploradores y libertad científica: comunidades científicas, autoridad y tradición"
-  ],
+  "learning_goals": [],
   "preferred_language": "es",
-  "history": [
-    {
-      "lesson_id": "lesson-001",
-      "source": "Prólogo, págs. 7-15",
-      "concept": "conocimiento-tacito",
-      "mastery": 0,
-      "date": "2026-08-03"
-    }
-  ],
-  "last_updated": "2026-08-03"
+  "history": [],
+  "last_updated": "2026-08-02"
 }
