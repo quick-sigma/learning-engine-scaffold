@@ -83,6 +83,7 @@ def list_lessons() -> list[dict[str, Any]]:
             except Exception:
                 slides = []
         acc = load_accuracy(lesson_id)
+        ready, missing_audio = lesson_audio_status(lesson_id, {"slides": slides})
         out.append(
             {
                 "id": lesson_id,
@@ -90,6 +91,8 @@ def list_lessons() -> list[dict[str, Any]]:
                 "slides": len(slides),
                 "mastery": acc.get("mastery", 0),
                 "has_content": content_file.is_file(),
+                "ready": ready,
+                "missing_audio": missing_audio,
                 "updated": acc.get("updated", ""),
             }
         )
@@ -106,6 +109,40 @@ def load_lesson(lesson_id: str) -> dict[str, Any] | None:
         return json.loads(slides_file.read_text(encoding="utf-8"))
     except Exception:
         return None
+
+
+def lesson_audio_status(lesson_id: str, lesson: dict[str, Any] | None = None) -> tuple[bool, list[str]]:
+    """Verifica que exista cada MP3 referenciado en slides.json.
+
+    Devuelve (audio_completo, [faltantes]). La lección NO es visible hasta que
+    audio_completo es True (publicación retardada, §5.9/§6.7 de SKILL.md).
+    """
+    if not _SAFE_NAME.match(lesson_id):
+        return False, ["lesson_id inválido"]
+    if lesson is None:
+        lesson = load_lesson(lesson_id)
+    if lesson is None:
+        return False, ["sin slides.json"]
+    audio_dir = ROOT / "lessons" / lesson_id / "audio"
+    missing: list[str] = []
+    for slide in lesson.get("slides", []):
+        for field in ("audio", "alt_audio", "instr_audio", "quiz_audio"):
+            name = slide.get(field)
+            if name and not (audio_dir / name).is_file():
+                missing.append(f"{slide.get('id', '?')}/{field}: {name}")
+        quiz = slide.get("quiz")
+        if isinstance(quiz, dict):
+            for field in ("audio", "feedback_audio"):
+                name = quiz.get(field)
+                if name and not (audio_dir / name).is_file():
+                    missing.append(f"{slide.get('id', '?')}/quiz.{field}: {name}")
+    # Marca explícita de publicación en slides.json (audio_ready)
+    ready_flag = lesson.get("audio_ready", True)
+    return (ready_flag and not missing), missing
+
+
+def lesson_is_ready(lesson_id: str) -> bool:
+    return lesson_audio_status(lesson_id)[0]
 
 
 def lesson_audio_path(lesson_id: str, filename: str) -> Path | None:

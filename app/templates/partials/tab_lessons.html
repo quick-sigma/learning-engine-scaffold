@@ -12,11 +12,14 @@
           <p class="meta">
             {{ l.slides }} slides ·
             {% if l.has_content %}contenido listo{% else %}pendiente de generar{% endif %}
+            {% if l.ready %}audio listo{% else %}generando audio{% endif %}
             {% if l.updated %} · actualizada {{ l.updated }}{% endif %}
           </p>
           <div class="lesson-actions">
-            {% if l.has_content %}
+            {% if l.ready %}
               <a class="btn" href="/lessons/{{ l.id }}">Abrir en reveal.js</a>
+            {% elif l.has_content %}
+              <span class="muted" role="status">⏳ Generando audio ({{ l.missing_audio|length }} pendiente{{ 's' if l.missing_audio|length != 1 else '' }})</span>
             {% else %}
               <span class="muted">Pídele a opencode que genere esta lección</span>
             {% endif %}

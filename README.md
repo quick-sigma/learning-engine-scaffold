@@ -82,6 +82,7 @@ usuario, no solo con el texto de la fuente.
 
 ```json
 {
+  "audio_ready": false,
   "slides": [
     {
       "id": "challenge",
@@ -104,6 +105,23 @@ usuario, no solo con el texto de la fuente.
 Etapas del bucle de descubrimiento: Challenge → Prediction → Experiment →
 Observation → Reflection → Explanation → Generalization → Application → Quiz
 → Mastery.
+
+### Publicación retardada (los slides NO se ven antes que el audio)
+
+Una lección **no es visible hasta que el 100% de su audio está generado**.
+`slides.json` lleva la marca `"audio_ready": false` al crearse; solo pasa a
+`true` cuando todos los MP3 referenciados (`audio`, `alt_audio`,
+`instr_audio`, `quiz_audio`) existen en `lessons/<id>/audio/`. Mientras tanto:
+
+- El índice muestra la lección con estado **"generando audio (N pendiente)"**.
+- `GET /lessons/{id}` devuelve `409` + plantilla `lesson_pending.html`
+  (nunca slides sin su narración).
+- La verificación es en tiempo real (`lib/fs.py → lesson_audio_status`):
+  si una sesión se corta a mitad del audio, la lección queda oculta y se
+  retoma desde el audio pendiente.
+
+Si una sesión se corta a mitad del audio, la lección permanece oculta y la
+siguiente invocación la retoma desde el audio pendiente (no desde cero).
 
 ## Audio (Kokoro)
 

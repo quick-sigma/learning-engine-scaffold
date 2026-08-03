@@ -1,0 +1,16 @@
+{% extends "base.html" %}
+{% block title %}{{ lesson_id }} — en preparación{% endblock %}
+{% block content %}
+<section aria-label="Lección en preparación" class="empty">
+  <h1>{{ lesson_id }} está en preparación</h1>
+  <p>El audio de esta lección aún no está completo y no se publica hasta que
+  todos los MP3 estén listos (publicación retardada, §5.9 de SKILL.md).</p>
+  {% if missing_audio %}
+    <p class="meta">Faltan {{ missing_audio|length }} audios:</p>
+    <ul class="meta" style="text-align:left">
+      {% for m in missing_audio %}<li>{{ m }}</li>{% endfor %}
+    </ul>
+  {% endif %}
+  <p><a href="/">← Volver al índice</a></p>
+</section>
+{% endblock %}
