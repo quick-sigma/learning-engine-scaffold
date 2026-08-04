@@ -252,42 +252,82 @@ def quiz_balance_warnings(
     warnings: list[str] = []
     for slide in lesson.get("slides", []):
         quiz = slide.get("quiz")
-        if not isinstance(quiz, dict):
-            continue
-        options = [str(o).strip() for o in (quiz.get("options") or [])]
-        correct = quiz.get("correct")
-        if not options or correct is None:
-            continue
-        try:
-            correct = int(correct)
-        except (TypeError, ValueError):
-            continue
-        if not (0 <= correct < len(options)):
-            continue
-        lengths = [len(o) for o in options]
-        correct_len = lengths[correct]
-        others = [l for i, l in enumerate(lengths) if i != correct]
-        others_max = max(others) if others else 0
-        others_avg = sum(others) / len(others) if others else 0
+        # El quiz puede ser un dict (una pregunta) o una lista de dicts
+        # (varias preguntas). Inspeccionar ambos — un falso negativo aquí
+        # permitiría publicar un quiz adivinable por su forma (regla dura D18).
+        quiz_items = quiz if isinstance(quiz, list) else ([quiz] if isinstance(quiz, dict) else [])
+        for qi, sub in enumerate(quiz_items):
+            if not isinstance(sub, dict):
+                continue
+            options = [str(o).strip() for o in (sub.get("options") or [])]
+            correct = sub.get("correct")
+            if not options or correct is None:
+                continue
+            try:
+                correct = int(correct)
+            except (TypeError, ValueError):
+                continue
+            if not (0 <= correct < len(options)):
+                continue
+            lengths = [len(o) for o in options]
+            correct_len = lengths[correct]
+            others = [l for i, l in enumerate(lengths) if i != correct]
+            others_max = max(others) if others else 0
+            others_avg = sum(others) / len(others) if others else 0
 
-        reason = ""
-        if others_max > 0 and correct_len > max(others_max * 1.6, others_max + 28):
-            reason = (
-                f"la opción correcta ({correct_len} caracteres) es claramente "
-                f"más larga que el resto (máx {others_max})"
-            )
-        elif others_max > 0 and correct_len > others_avg * 2.0 and correct_len > others_max:
-            reason = (
-                f"la opción correcta ({correct_len} caracteres) duplica la "
-                f"media de las demás ({others_avg:.0f})"
-            )
-        low = options[correct].lower()
-        for trap in ("todas las anteriores", "ninguna de las anteriores",
-                     "todos los anteriores", "ninguno de los anteriores"):
-            if trap in low:
-                reason = (reason + "; " if reason else "") + f"correcta del tipo «{trap}»"
-        if reason:
-            warnings.append(f"slide {slide.get('id', '?')}/quiz: {reason}")
+            reason = ""
+            if others_max > 0 and correct_len > max(others_max * 1.6, others_max + 28):
+                reason = (
+                    f"la opción correcta ({correct_len} caracteres) es claramente "
+                    f"más larga que el resto (máx {others_max})"
+                )
+            elif others_max > 0 and correct_len > others_avg * 2.0 and correct_len > others_max:
+                reason = (
+                    f"la opción correcta ({correct_len} caracteres) duplica la "
+                    f"media de las demás ({others_avg:.0f})"
+                )
+            low = options[correct].lower()
+            for trap in ("todas las anteriores", "ninguna de las anteriores",
+                         "todos los anteriores", "ninguno de los anteriores"):
+                if trap in low:
+                    reason = (reason + "; " if reason else "") + f"correcta del tipo «{trap}»"
+            if reason:
+                label = f"slide {slide.get('id', '?')}/quiz[{qi}]" if isinstance(quiz, list) else f"slide {slide.get('id', '?')}/quiz"
+                warnings.append(f"{label}: {reason}")
+        # La predicción también debe estar equilibrada (regla dura D14/D18)
+        pred = slide.get("prediction")
+        if isinstance(pred, dict):
+            options = [str(o).strip() for o in (pred.get("options") or [])]
+            correct = pred.get("correct")
+            if options and correct is not None:
+                try:
+                    correct = int(correct)
+                except (TypeError, ValueError):
+                    correct = -1
+                if 0 <= correct < len(options):
+                    lengths = [len(o) for o in options]
+                    correct_len = lengths[correct]
+                    others = [l for i, l in enumerate(lengths) if i != correct]
+                    others_max = max(others) if others else 0
+                    others_avg = sum(others) / len(others) if others else 0
+                    reason = ""
+                    if others_max > 0 and correct_len > max(others_max * 1.6, others_max + 28):
+                        reason = (
+                            f"la opción correcta ({correct_len} caracteres) es claramente "
+                            f"más larga que el resto (máx {others_max})"
+                        )
+                    elif others_max > 0 and correct_len > others_avg * 2.0 and correct_len > others_max:
+                        reason = (
+                            f"la opción correcta ({correct_len} caracteres) duplica la "
+                            f"media de las demás ({others_avg:.0f})"
+                        )
+                    low = options[correct].lower()
+                    for trap in ("todas las anteriores", "ninguna de las anteriores",
+                                 "todos los anteriores", "ninguno de los anteriores"):
+                        if trap in low:
+                            reason = (reason + "; " if reason else "") + f"correcta del tipo «{trap}»"
+                    if reason:
+                        warnings.append(f"slide {slide.get('id', '?')}/prediction: {reason}")
     return warnings
 
 
