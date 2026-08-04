@@ -125,12 +125,19 @@ la tabla de su familia y luego usarlo.
 
 Cada slide del bucle de descubrimiento (§7 SKILL.md) debe cumplir:
 
+0. **Slide 0 = portada de origen (obligatoria)**: la primera slide del deck
+   muestra el **título del capítulo original** y el **rango de páginas** en el
+   que se basó la lección (ej. "Capítulo 3 · Refracción — págs. 58–62").
+   `stage: "Contexto"` (usa el color de etapa por defecto), id `source`,
+   campos `source_chapter`/`source_pages` a nivel de lección, audio
+   `slide-00.mp3`. Nunca una lección sin portada de origen (§4.2 SKILL.md).
 1. **Un concepto por slide**. Si una slide tiene dos ideas, se parte en dos.
 2. **Etiqueta de etapa obligatoria y con color determinista**:
    `data-stage="{stage|lower}"` sobre `.stage-tag`. Mapeo de color
    (NO cambiar):
    | Etapa | Token de color |
    | --- | --- |
+   | contexto (portada) | `#94a3b8` (slate) |
    | challenge | `#fb923c` (naranja) |
    | prediction | `#a78bfa` (violeta) |
    | experiment | `#22d3ee` (cian) |
@@ -230,8 +237,33 @@ Cada slide del bucle de descubrimiento (§7 SKILL.md) debe cumplir:
   transición de fondo `--dur-3`.
 - **Sonda / Saturación**: canvas/foco con borde que se ilumina al hover;
   estados `--ok`/`--warn`/`--ko`.
+- **Editor de código (`.code-editor`)**: textarea transparente sobre un `<pre>`
+  con resaltado Python (misma celda de grid, scroll sincronizado). Fondo
+  `#0d1117`; tokens de sintaxis SOLO con la paleta del deck: keywords `#c4b5fd`,
+  strings `#6ee7b7`, comentarios `#6b7280`, números `#fbbf24`, funciones
+  `#93c5fd`. Toolbar con `.btn` (Ejecutar/Comprobar/Pista/Guardar/Reiniciar).
+  Salida en `.code-output` (stdout `--deck-text`, stderr `--ko` sobre
+  `rgba(248,113,113,.06)`). `aria-live="polite"` en salida y feedback;
+  `:focus-visible` = ring `#a5b4fc`.
+
+### 8.1 Narración obligatoria de widgets (regla dura, SKILL.md §6.3/§6.5)
+
+**Todo bloque de texto de todo widget tiene su reproductor de audio**, incluido
+el debate socrático:
+- Bloques narrables: `task`, `hint`, `instructions`, `formula` (logic_truth),
+  en debate la `thesis`, el `opening`, cada `turn.agent` y cada
+  `turn.options[M]`, y en el **editor de código** `task`, `instructions`,
+  `hint`, `feedback_ok`/`feedback_ko`, y si hay pregunta `prompt` y cada
+  `prompt_options[M]`.
+- El widget declara su audio en el mapa `audio` de su configuración
+  (`slides.json`), con nombres `w-<slideid>-*`.
+- El reproductor `.audio-play` se renderiza **junto a cada bloque**; en el
+  debate, el JS lo inyecta dinámicamente por turno y opción leyendo el mapa
+  `audio` (`audio.turns[N]`, `audio.turns_options[N][M]`).
+- Un widget **sin audio no es publicable** (`lesson_audio_status` lo valida).
+  Todo widget nuevo debe nacer narrable desde su diseño.
 - Prohibido: widgets con scroll horizontal, controles sin `:focus-visible`,
-  o colores hardcodeados fuera de `--deck-*`.
+  colores hardcodeados fuera de `--deck-*`, o bloques de texto sin su MP3.
 
 ---
 

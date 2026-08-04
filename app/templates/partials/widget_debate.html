@@ -5,14 +5,27 @@
      data-lesson="{{ lesson_id }}"
      data-turns='{{ widget.turns | default([]) | tojson }}'
      data-thesis='{{ widget.thesis | default("") | tojson }}'
-     data-opening='{{ widget.opening | default("") | tojson }}'>
+     data-opening='{{ widget.opening | default("") | tojson }}'
+     data-audio='{{ widget.audio | default({}) | tojson }}'>
 
-  <p class="debate-thesis instructions">{{ widget.thesis }}</p>
+  <p class="debate-thesis instructions">
+    {{ widget.thesis }}
+    {% if widget.audio and widget.audio.thesis %}
+      {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ widget.audio.thesis %}
+      {% set compact = true %}
+      {% include "partials/audio_player.html" %}
+    {% endif %}
+  </p>
 
   <div class="debate" data-debate aria-live="polite">
     <div class="debate-msg agent">
       <div class="debate-role agent">Contrincante</div>
       {{ widget.opening }}
+      {% if widget.audio and widget.audio.opening %}
+        {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ widget.audio.opening %}
+        {% set compact = true %}
+        {% include "partials/audio_player.html" %}
+      {% endif %}
     </div>
   </div>
 

@@ -105,7 +105,16 @@ usuario, no solo con el texto de la fuente.
 ```json
 {
   "audio_ready": false,
+  "source_chapter": "Capítulo 3 · Refracción y dispersión",
+  "source_pages": "58-62",
   "slides": [
+    {
+      "id": "source",
+      "stage": "Contexto",
+      "title": "Capítulo 3 · Refracción y dispersión",
+      "text": "Esta lección se basa en las páginas 58-62 del capítulo original.",
+      "audio": "slide-00.mp3"
+    },
     {
       "id": "challenge",
       "stage": "Challenge",
@@ -128,6 +137,12 @@ usuario, no solo con el texto de la fuente.
   ]
 }
 ```
+
+**Slide 0 = portada de origen (obligatoria)**: la primera slide siempre
+muestra el título del capítulo original del libro y el rango de páginas en el
+que se basó la lección (campos `source_chapter` y `source_pages` a nivel de
+lección). Así el estudiante sabe dónde está en la fuente. Su audio es
+`slide-00.mp3`.
 
 Cada opción de quiz/predicción tiene su MP3 en `options_audio` (uno por opción,
 alineado con `options`); el reproductor se muestra dentro de cada opción. La
@@ -185,6 +200,7 @@ rm -f app/tmp/tmp-slide.wav
 | POST | `/api/quiz/{id}` | Respuesta de quiz (form HTMX) → `accuracy/*.json` |
 | POST | `/api/prediction/{id}` | Predicción del estudiante (JSON) |
 | POST | `/api/widget/{lesson}/{widget}` | Guardar estado de un widget (JSON) → `widgets/*.json` + telemetría |
+| POST | `/api/run_code/{lesson}` | Ejecutar código del editor vivo en el sandbox (JSON) → stdout/stderr/timeout |
 
 ## Widgets interactivos (formas varias de explicar)
 
@@ -209,6 +225,59 @@ interactivo añadiendo `"widget": { "type": … }`:
 | `canvas` | Lienzo libre de conceptos: nodos arrastrables + aristas tipadas (argument mapping, grafo de conceptos). |
 | `logic_truth` | Tabla de verdad interactiva con evaluador proposicional integrado (`formula`, `variables`). |
 | `debate` | Debate socrático por turnos contra el agente (`thesis`, `opening`, `turns[]`). |
+| `code_editor` | Editor de código vivo (programación e IA): resaltado Python, ejecución en sandbox (`/api/run_code`) y comprobación contra una salida esperada (`starter_code`, `expected_output`, `check`, `prompt`). |
+
+```json
+{
+  "id": "editor",
+  "stage": "Experiment",
+  "widget": {
+    "type": "code_editor",
+    "task": "Corrige la función para que devuelva el doble",
+    "instructions": "Edita el código y pulsa Ejecutar para ver la salida.",
+    "hint": "Usa `return x * 2`.",
+    "language": "python",
+    "starter_code": "def duplica(x):\n    pass\n\nprint(duplica(21))",
+    "expected_output": "42",
+    "check": { "mode": "contains", "expected": "42" },
+    "prompt": "¿Qué número imprime el programa corregido?",
+    "prompt_options": ["21", "42", "84"],
+    "prompt_correct": 1,
+    "audio": {
+      "task": "w-editor-task.mp3", "instructions": "w-editor-instr.mp3",
+      "hint": "w-editor-hint.mp3", "feedback_ok": "w-editor-ok.mp3",
+      "feedback_ko": "w-editor-ko.mp3", "prompt": "w-editor-prompt.mp3",
+      "prompt_options": ["w-editor-prompt-opt-0.mp3", "w-editor-prompt-opt-1.mp3", "w-editor-prompt-opt-2.mp3"]
+    }
+  }
+}
+```
+
+El código del estudiante se ejecuta en un **sandbox ligero** (`lib/runner.py`):
+subproceso `-I`, límites de CPU/memoria/tamaño de archivo, timeout, builtins
+peligrosas desactivadas (`open`, `input`, …) e imports de riesgo bloqueados
+(`os`, `subprocess`, `socket`, …). Es una herramienta local de estudio, no un
+sandbox frente a un atacante.
+
+### Adaptación de widgets (widget ignorado → probar otro)
+
+El deck emite `widget_view` / `widget_engage` / `widget_ignore` según el
+usuario interactúe con un widget o lo abandone sin tocarlo. La app agrega el
+compromiso por lección en `accuracy/*.json → widgets` y acumula la preferencia
+global en **`profiles/widgets.json`**. El motor adaptativo (§8.8 SKILL.md)
+lee esa señal: **un widget ignorado es la señal de probar OTRO widget/medio**
+que pueda agradar al usuario, iterando (testing) hasta encontrar el que quiere.
+
+### Quiz no adivinable por la forma
+
+La respuesta correcta de un quiz **no debe poder predecirse antes de leer**
+(no la más larga, no la única con matices, no «todas las anteriores»). El
+validador bloquea la publicación si `fs.quiz_balance_warnings(lesson_id)`
+devuelve advertencias:
+
+```bash
+uv run python -c "from lib import fs; print(fs.quiz_balance_warnings(lesson_id='lesson-001'))"
+```
 
 El scaffold **no es un límite**: el agente está autorizado a crear widgets
 nuevos (partial `widget_<tipo>.html` + JS en `lesson-widgets.js` + CSS en

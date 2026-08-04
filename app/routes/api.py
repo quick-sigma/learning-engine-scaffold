@@ -2,7 +2,7 @@ from fastapi import APIRouter, Form, Request
 from fastapi.responses import HTMLResponse
 
 from main import templates
-from lib import fs, types
+from lib import fs, runner, types
 
 router = APIRouter()
 
@@ -34,6 +34,41 @@ def widget_state(lesson_id: str, widget_id: str, payload: types.WidgetState):
         },
     )
     return {"ok": True}
+
+
+@router.post("/api/run_code/{lesson_id}")
+def run_code(lesson_id: str, payload: types.RunCodePayload):
+    """Editor vivo del widget `code_editor`: ejecuta el código del estudiante
+    en el sandbox y devuelve el resultado como JSON para el JS (fetch)."""
+    if payload.language != "python":
+        return {
+            "ok": False, "exit": None, "stdout": "", "stderr": "",
+            "timeout": False,
+            "error": f"lenguaje '{payload.language}' aún no soportado",
+        }
+    result = runner.run_python(payload.code)
+    fs.append_response(
+        lesson_id,
+        {
+            "ev": "code_run",
+            "widget": payload.widget,
+            "slide": payload.slide,
+            "ok": result.get("ok"),
+            "timeout": result.get("timeout"),
+            "error": result.get("error"),
+            "ts": fs.now_ms(),
+        },
+    )
+    fs.save_widget_state(
+        lesson_id,
+        payload.widget or "code",
+        {
+            "last_code": payload.code,
+            "last_ok": result.get("ok"),
+            "last_error": result.get("error"),
+        },
+    )
+    return result
 
 
 @router.post("/api/prediction/{lesson_id}")

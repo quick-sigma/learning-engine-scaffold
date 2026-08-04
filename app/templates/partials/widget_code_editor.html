@@ -1,0 +1,85 @@
+{% if widget %}
+<div class="widget code-editor-widget"
+     data-widget="code_editor"
+     data-widget-id="{{ slide.id }}"
+     data-lesson="{{ lesson_id }}"
+     data-language="{{ widget.language | default('python') }}"
+     data-starter="{{ widget.starter_code | default('') }}"
+     data-task="{{ widget.task or '' }}"
+     data-expected="{{ widget.expected_output | default('') }}"
+     data-check='{{ widget.check | default({}) | tojson }}'
+     data-prompt-correct="{{ widget.prompt_correct | default(-1) }}"
+     data-audio='{{ widget.audio | default({}) | tojson }}'>
+
+  {% if widget.task %}
+    <p class="code-task">{{ widget.task }}</p>
+    {% if widget.audio and widget.audio.task %}
+      {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ widget.audio.task %}
+      {% include "partials/audio_player.html" %}
+    {% endif %}
+  {% endif %}
+
+  {% if widget.instructions %}
+    <p class="instructions">{{ widget.instructions }}</p>
+    {% if widget.audio and widget.audio.instructions %}
+      {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ widget.audio.instructions %}
+      {% include "partials/audio_player.html" %}
+    {% endif %}
+  {% endif %}
+
+  <div class="widget-toolbar">
+    <button type="button" class="btn btn-sm" data-code-run>Ejecutar</button>
+    <button type="button" class="btn btn-sm btn-secondary" data-code-check>Comprobar</button>
+    <button type="button" class="btn btn-sm btn-ghost" data-code-hint>Pista</button>
+    <button type="button" class="btn btn-sm" data-code-save>Guardar</button>
+    <button type="button" class="btn btn-sm btn-ghost" data-code-reset>Reiniciar</button>
+    <span class="widget-hint muted" data-code-lang>{{ widget.language | default('python') }}</span>
+  </div>
+
+  <div class="code-editor">
+    <pre class="code-hl" aria-hidden="true"></pre>
+    <textarea class="code-input" data-code-input spellcheck="false" wrap="off"
+              aria-label="Editor de código. Escribe o modifica el programa del ejercicio."></textarea>
+  </div>
+
+  <div class="code-hintbox" data-code-hintbox hidden>
+    <p>{{ widget.hint or '' }}</p>
+    {% if widget.audio and widget.audio.hint %}
+      {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ widget.audio.hint %}
+      {% include "partials/audio_player.html" %}
+    {% endif %}
+  </div>
+
+  <div class="code-output" data-code-output hidden aria-live="polite">
+    <p class="code-output-label">Salida de tu programa</p>
+    <pre class="code-stdout" data-code-stdout></pre>
+    <pre class="code-err" data-code-stderr hidden></pre>
+  </div>
+
+  {% if widget.prompt %}
+    <div class="code-prompt" data-code-prompt hidden>
+      <p class="instructions">{{ widget.prompt }}</p>
+      {% if widget.audio and widget.audio.prompt %}
+        {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ widget.audio.prompt %}
+        {% include "partials/audio_player.html" %}
+      {% endif %}
+      {% for opt in widget.prompt_options | default([]) %}
+        <label class="quiz-opt">
+          <input type="radio" name="code-answer" value="{{ loop.index0 }}">
+          <span>{{ opt }}</span>
+          {% if widget.audio and widget.audio.prompt_options and widget.audio.prompt_options[loop.index0] %}
+            {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ widget.audio.prompt_options[loop.index0] %}
+            {% set compact = true %}
+            {% include "partials/audio_player.html" %}
+          {% endif %}
+        </label>
+      {% endfor %}
+      <div class="probe-actions">
+        <button type="button" class="btn btn-sm" data-code-prompt-save>Guardar respuesta</button>
+      </div>
+    </div>
+  {% endif %}
+
+  <div class="widget-feedback" data-code-feedback aria-live="polite"></div>
+</div>
+{% endif %}

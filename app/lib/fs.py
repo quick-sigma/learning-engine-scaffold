@@ -114,6 +114,22 @@ def load_lesson(lesson_id: str) -> dict[str, Any] | None:
         return None
 
 
+def _walk_audio_files(node: Any) -> list[str]:
+    """Recorre un mapa `audio` de widget (puede tener listas anidadas como
+    `turns`/`turns_options` del debate o `prompt_options` del editor de
+    código) y devuelve los nombres de MP3 que referencia (regla dura §6.5)."""
+    out: list[str] = []
+    if isinstance(node, dict):
+        for v in node.values():
+            out.extend(_walk_audio_files(v))
+    elif isinstance(node, list):
+        for v in node:
+            out.extend(_walk_audio_files(v))
+    elif isinstance(node, str) and node.endswith(".mp3"):
+        out.append(node)
+    return out
+
+
 def lesson_audio_status(lesson_id: str, lesson: dict[str, Any] | None = None) -> tuple[bool, list[str]]:
     """Verifica que exista cada MP3 referenciado en slides.json.
 
@@ -148,6 +164,12 @@ def lesson_audio_status(lesson_id: str, lesson: dict[str, Any] | None = None) ->
                 for i, opt in enumerate(sub.get("options_audio") or []):
                     if opt and not (audio_dir / opt).is_file():
                         missing.append(f"{slide.get('id', '?')}/{sub_key}.opcion[{i}]: {opt}")
+        # audio de widgets (mapa `audio` de cada widget, §6.5 — regla dura)
+        widget = slide.get("widget")
+        if isinstance(widget, dict):
+            for fname in _walk_audio_files(widget.get("audio")):
+                if fname and not (audio_dir / fname).is_file():
+                    missing.append(f"{slide.get('id', '?')}/widget.audio: {fname}")
     # Marca explícita de publicación en slides.json (audio_ready)
     ready_flag = lesson.get("audio_ready", True)
     return (ready_flag and not missing), missing
@@ -173,6 +195,65 @@ def check_quiz_answer(lesson: dict[str, Any], slide_id: str, answer: str) -> boo
         correct_idx = slide["quiz"].get("correct")
         return answer == str(correct_idx)
     return False
+
+
+def quiz_balance_warnings(
+    lesson: dict[str, Any] | None = None, lesson_id: str | None = None
+) -> list[str]:
+    """Detecta quizzes donde la opción correcta se delata ANTES de responder:
+    es la más larga, la única con matices/lista, o del tipo «todas las
+    anteriores». Patrón típico del modelo al escribir opciones (regla dura
+    §7/§14 de SKILL.md: la correcta no debe predecirse por su forma).
+
+    Devuelve una advertencia por slide infractora. El editor pedagógico la usa
+    para corregir y el validador la usa para NO publicar una lección cuyo
+    quiz sea adivinable. Ejecutable desde la app:
+        uv run python -c "from lib import fs; print(fs.quiz_balance_warnings(lesson_id='lesson-001'))"
+    """
+    if lesson is None:
+        lesson = load_lesson(lesson_id) if lesson_id else None
+    if not lesson:
+        return []
+    warnings: list[str] = []
+    for slide in lesson.get("slides", []):
+        quiz = slide.get("quiz")
+        if not isinstance(quiz, dict):
+            continue
+        options = [str(o).strip() for o in (quiz.get("options") or [])]
+        correct = quiz.get("correct")
+        if not options or correct is None:
+            continue
+        try:
+            correct = int(correct)
+        except (TypeError, ValueError):
+            continue
+        if not (0 <= correct < len(options)):
+            continue
+        lengths = [len(o) for o in options]
+        correct_len = lengths[correct]
+        others = [l for i, l in enumerate(lengths) if i != correct]
+        others_max = max(others) if others else 0
+        others_avg = sum(others) / len(others) if others else 0
+
+        reason = ""
+        if others_max > 0 and correct_len > max(others_max * 1.6, others_max + 28):
+            reason = (
+                f"la opción correcta ({correct_len} caracteres) es claramente "
+                f"más larga que el resto (máx {others_max})"
+            )
+        elif others_max > 0 and correct_len > others_avg * 2.0 and correct_len > others_max:
+            reason = (
+                f"la opción correcta ({correct_len} caracteres) duplica la "
+                f"media de las demás ({others_avg:.0f})"
+            )
+        low = options[correct].lower()
+        for trap in ("todas las anteriores", "ninguna de las anteriores",
+                     "todos los anteriores", "ninguno de los anteriores"):
+            if trap in low:
+                reason = (reason + "; " if reason else "") + f"correcta del tipo «{trap}»"
+        if reason:
+            warnings.append(f"slide {slide.get('id', '?')}/quiz: {reason}")
+    return warnings
 
 
 # ---------------------------------------------------------------------------
@@ -300,6 +381,49 @@ def save_accuracy(lesson_id: str, data: dict[str, Any]) -> None:
     )
 
 
+def recompute_widget_prefs() -> dict[str, Any]:
+    """Acumula la preferencia de widgets del usuario a partir de TODAS las
+    lecciones (`responses/*.jsonl`) y escribe `profiles/widgets.json`.
+
+    El motor adaptativo (§8.8 de SKILL.md) lo lee para decidir qué medio usar
+    en la siguiente lección: si un widget se ignora (engage bajo), se prueba
+    OTRO widget que pueda agradar, iterando hasta encontrar el que el usuario
+    quiere. Devuelve el mapa {tipo_widget: {views, engaged, ignored, pct_engaged,
+    lessons[]}}.
+    """
+    events_dir = ROOT / "responses"
+    agg: dict[str, dict[str, Any]] = {}
+    if events_dir.is_dir():
+        for f in sorted(events_dir.glob("lesson-*.jsonl")):
+            for line in f.read_text(encoding="utf-8").splitlines():
+                if not line.strip():
+                    continue
+                try:
+                    e = json.loads(line)
+                except Exception:
+                    continue
+                ev = e.get("ev")
+                w = e.get("widget")
+                if ev in ("widget_view", "widget_engage", "widget_ignore") and isinstance(w, str):
+                    d = agg.setdefault(w, {"views": 0, "engaged": 0, "ignored": 0, "lessons": []})
+                    if ev == "widget_view":
+                        d["views"] += 1
+                    elif ev == "widget_engage":
+                        d["engaged"] += 1
+                    else:
+                        d["ignored"] += 1
+                    lesson = e.get("lesson_id")
+                    if lesson and lesson not in d["lessons"]:
+                        d["lessons"].append(lesson)
+    for d in agg.values():
+        d["pct_engaged"] = round(100 * d["engaged"] / d["views"]) if d["views"] else 0
+    (ROOT / "profiles").mkdir(exist_ok=True)
+    (ROOT / "profiles" / "widgets.json").write_text(
+        json.dumps(agg, ensure_ascii=False, indent=2), encoding="utf-8"
+    )
+    return agg
+
+
 def recompute_accuracy(lesson_id: str) -> dict[str, Any]:
     events = load_responses(lesson_id)
     quiz = [e for e in events if e.get("ev") == "quiz"]
@@ -324,6 +448,25 @@ def recompute_accuracy(lesson_id: str) -> dict[str, Any]:
                 seen.add(slide)
         prev_h = h
 
+    # compromiso con cada widget: view / engage / ignore (§8.8 SKILL.md).
+    # Un widget ignorado (sin interacción al abandonar la slide) es la señal
+    # para probar OTRO widget/medio en la siguiente lección.
+    widgets: dict[str, dict[str, Any]] = {}
+    for e in events:
+        ev = e.get("ev")
+        w = e.get("widget")
+        if ev in ("widget_view", "widget_engage", "widget_ignore") and isinstance(w, str):
+            d = widgets.setdefault(w, {"views": 0, "engaged": 0, "ignored": 0, "ms_total": 0})
+            if ev == "widget_view":
+                d["views"] += 1
+            elif ev == "widget_engage":
+                d["engaged"] += 1
+            else:
+                d["ignored"] += 1
+            d["ms_total"] += int(e.get("ms") or 0)
+    for d in widgets.values():
+        d["pct_engaged"] = round(100 * d["engaged"] / d["views"]) if d["views"] else 0
+
     acc = {
         "lesson_id": lesson_id,
         "mastery": mastery,
@@ -335,9 +478,11 @@ def recompute_accuracy(lesson_id: str) -> dict[str, Any]:
         "audio_played_count": sum(1 for e in events if e.get("ev") == "audio"),
         "avg_time_per_slide_ms": avg_ms,
         "revisited_slides": revisited,
+        "widgets": widgets,
         "updated": datetime.now().isoformat(timespec="seconds"),
     }
     save_accuracy(lesson_id, acc)
+    recompute_widget_prefs()
 
     cfg = read_config()
     cfg["mastery_score"] = mastery

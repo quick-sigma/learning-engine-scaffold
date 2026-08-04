@@ -26,6 +26,17 @@
     } catch (e) { if (cb) cb(false); }
   }
 
+  /* ----------------------------------------------------------------
+     Engagement de widgets: el deck (lesson-deck.js) pregunta si hubo
+     interacción antes de abandonar una slide con widget. Si NO la hubo,
+     emite `widget_ignore` → señal para probar OTRO widget (§8.8 SKILL.md).
+  ---------------------------------------------------------------- */
+  window.__widgetEngaged = window.__widgetEngaged || {};
+  function engage(root) {
+    var id = root && root.dataset.widgetId;
+    if (id) window.__widgetEngaged[id] = true;
+  }
+
   /* ==================================================================
      Widget 1: Lienzo de conceptos (SVG arrastrable con aristas tipadas)
      ================================================================== */
@@ -468,11 +479,32 @@
     var lessonId = root.dataset.lesson;
     var widgetId = root.dataset.widgetId;
     var turns = JSON.parse(root.dataset.turns || '[]');
+    var widgetAudio = JSON.parse(root.dataset.audio || '{}'); // mapa audio §6.5
     var transcript = root.querySelector('[data-debate]');
     var feedback = root.querySelector('[data-debate-feedback]');
     var ti = 0;
 
-    function addAgent(text) {
+    function audioButton(src) {
+      var b = document.createElement('button');
+      b.type = 'button';
+      b.setAttribute('class', 'audio-play audio-play-sm');
+      b.setAttribute('data-src', src);
+      b.setAttribute('aria-label', 'Reproducir narración');
+      var play = document.createElement('span');
+      play.setAttribute('class', 'play-ico');
+      play.setAttribute('aria-hidden', 'true');
+      play.textContent = '▶';
+      var eq = document.createElement('span');
+      eq.setAttribute('class', 'eq');
+      eq.setAttribute('aria-hidden', 'true');
+      eq.innerHTML = '<i></i><i></i><i></i>';
+      var label = document.createElement('span');
+      label.textContent = 'Narrar';
+      b.appendChild(play); b.appendChild(eq); b.appendChild(label);
+      return b;
+    }
+
+    function addAgent(text, audioSrc) {
       var m = document.createElement('div');
       m.setAttribute('class', 'debate-msg agent');
       var role = document.createElement('div');
@@ -481,6 +513,7 @@
       var p = document.createElement('div');
       p.textContent = text;
       m.appendChild(role); m.appendChild(p);
+      if (audioSrc) m.appendChild(audioButton(audioSrc));
       transcript.appendChild(m);
       transcript.scrollTop = transcript.scrollHeight;
     }
@@ -500,18 +533,21 @@
 
     function renderTurn() {
       if (ti >= turns.length) {
-        addAgent('Fin del debate. Vuelve a la Reflection y anota lo que cambió en tu posición.');
+        addAgent('Fin del debate. Vuelve a la Reflection y anota lo que cambió en tu posición.',
+          widgetAudio.end);
         feedback.textContent = '✓ Debate completado.';
         feedback.className = 'widget-feedback ok';
         saveWidget(lessonId, widgetId, 'debate', { complete: true }, function () {});
         return;
       }
       var turn = turns[ti];
+      var turnAudio = widgetAudio.turns ? widgetAudio.turns[ti] : null;
+      var turnOptsAudio = widgetAudio.turns_options ? widgetAudio.turns_options[ti] : [];
       var wrap = document.createElement('div');
       wrap.setAttribute('class', 'debate-turn');
 
       if (turn.agent) {
-        addAgent(turn.agent);
+        addAgent(turn.agent, turnAudio);
         var prompts = Array.isArray(turn.options) ? turn.options
           : Array.isArray(turn.responses) ? turn.responses.map(function (r) { return r.text; }) : [];
         if (prompts.length) {
@@ -521,10 +557,13 @@
             var b = document.createElement('button');
             b.type = 'button';
             b.setAttribute('class', 'debate-opt');
-            b.textContent = opt;
+            var bText = document.createElement('span');
+            bText.textContent = opt;
+            b.appendChild(bText);
+            if (turnOptsAudio && turnOptsAudio[i]) b.appendChild(audioButton(turnOptsAudio[i]));
             b.addEventListener('click', function () {
-              addStudent(opt);
-              telemetry({ lesson_id: lessonId, ev: 'debate_response', widget: widgetId, turn: ti, option: i, text: opt });
+              addStudent(bText.textContent);
+              telemetry({ lesson_id: lessonId, ev: 'debate_response', widget: widgetId, turn: ti, option: i, text: bText.textContent });
               var resp = Array.isArray(turn.responses) ? turn.responses[i] : { next: i };
               ti = (resp && typeof resp.next === 'number') ? resp.next : ti + 1;
               renderTurn();
@@ -970,6 +1009,230 @@
     renderWord();
   }
 
+  /* ==================================================================
+     Widget 7: Editor de código vivo (programación e IA). Textarea con
+     resaltado de sintaxis Python (pre detrás), ejecución en el sandbox
+     de lib/runner.py vía /api/run_code y comprobación automática contra
+     una salida esperada (check.mode: contains | equals | empty | exit_zero).
+     ================================================================== */
+  function initCodeEditor(widget) {
+    var root = widget;
+    var lessonId = root.dataset.lesson;
+    var widgetId = root.dataset.widgetId;
+    var starter = root.dataset.starter || '';
+    var expected = root.dataset.expected || '';
+    var check = {};
+    try { check = JSON.parse(root.dataset.check || '{}'); } catch (e) { check = {}; }
+    var audio = {};
+    try { audio = JSON.parse(root.dataset.audio || '{}'); } catch (e) { audio = {}; }
+    var ta = root.querySelector('[data-code-input]');
+    var hl = root.querySelector('.code-hl');
+    var outBox = root.querySelector('[data-code-output]');
+    var stdoutEl = root.querySelector('[data-code-stdout]');
+    var stderrEl = root.querySelector('[data-code-stderr]');
+    var feedback = root.querySelector('[data-code-feedback]');
+    var hintBox = root.querySelector('[data-code-hintbox]');
+    var promptBox = root.querySelector('[data-code-prompt]');
+
+    var lastOutput = '';
+    var lastRunOk = false;
+    var ran = false;
+
+    function esc(s) {
+      return String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
+    }
+
+    function pyHighlight(src) {
+      var out = '';
+      var last = 0;
+      var re = /(#.*)|("""[\s\S]*?"""|'''[\s\S]*?'''|"(?:[^"\\]|\\.)*"|'(?:[^'\\]|\\.)*')|\b(def|class|return|if|elif|else|for|while|import|from|as|try|except|finally|with|lambda|pass|break|continue|in|is|not|and|or|True|False|None|print|range|len|int|str|float|bool|list|dict|set|tuple|yield|raise|input|sum|min|max|abs|round|sorted|enumerate|zip|map|filter|any|all|type|isinstance)\b|\b(\d+(?:\.\d+)?)\b|(\b[A-Za-z_]\w*)(?=\s*\()/g;
+      var m;
+      while ((m = re.exec(src))) {
+        out += esc(src.slice(last, m.index));
+        if (m[1]) out += '<span class="tok-comment">' + esc(m[1]) + '</span>';
+        else if (m[2]) out += '<span class="tok-str">' + esc(m[2]) + '</span>';
+        else if (m[3]) out += '<span class="tok-kw">' + esc(m[3]) + '</span>';
+        else if (m[4]) out += '<span class="tok-num">' + esc(m[4]) + '</span>';
+        else if (m[5]) out += '<span class="tok-fn">' + esc(m[5]) + '</span>';
+        last = re.lastIndex;
+      }
+      out += esc(src.slice(last));
+      return out;
+    }
+
+    function syncHighlight() {
+      if (hl) hl.innerHTML = pyHighlight(ta.value);
+    }
+
+    function syncScroll() {
+      if (hl) { hl.scrollTop = ta.scrollTop; hl.scrollLeft = ta.scrollLeft; }
+    }
+
+    function playFile(name) {
+      if (!name) return;
+      var a = new Audio('/lessons/' + lessonId + '/audio/' + name);
+      a.play().catch(function () {});
+      telemetry({ lesson_id: lessonId, ev: 'code_audio', widget: widgetId, file: name });
+    }
+
+    function showRun(res) {
+      ran = true;
+      lastOutput = (res && res.stdout) || '';
+      lastRunOk = !!(res && res.ok && !res.timeout);
+      stdoutEl.textContent = lastOutput || '(sin salida)';
+      stdoutEl.hidden = false;
+      if (res && res.timeout) {
+        stderrEl.textContent = '⏱ ' + (res.error || 'se agotó el tiempo');
+        stderrEl.hidden = false;
+        outBox.hidden = false;
+        feedback.textContent = 'El programa tardó demasiado. Añade un caso base que termine.';
+        feedback.className = 'widget-feedback ko';
+      } else if (res && !res.ok) {
+        stderrEl.textContent = (res.error ? 'Error: ' + res.error : '') || (res.stderr || 'Error de ejecución');
+        stderrEl.hidden = false;
+        outBox.hidden = false;
+        feedback.textContent = 'Tu código falló al ejecutarse. Lee el error y corrígelo.';
+        feedback.className = 'widget-feedback ko';
+      } else {
+        stderrEl.hidden = true;
+        outBox.hidden = false;
+        feedback.textContent = '✓ Ejecutado sin errores. Compara la salida y pulsa «Comprobar».';
+        feedback.className = 'widget-feedback ok';
+      }
+    }
+
+    function runCode(cb) {
+      ta.disabled = true;
+      feedback.textContent = 'Ejecutando…';
+      feedback.className = 'widget-feedback';
+      try {
+        fetch('/api/run_code/' + encodeURIComponent(lessonId), {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            lesson_id: lessonId,
+            widget: widgetId,
+            slide: root.dataset.widgetId,
+            language: root.dataset.language || 'python',
+            code: ta.value,
+          }),
+        }).then(function (r) { return r.json(); }).then(function (res) {
+          ta.disabled = false;
+          showRun(res);
+          if (cb) cb(res);
+        }).catch(function () {
+          ta.disabled = false;
+          feedback.textContent = 'No se pudo ejecutar (¿servidor disponible?).';
+          feedback.className = 'widget-feedback ko';
+          if (cb) cb({ ok: false, stdout: '' });
+        });
+      } catch (e) {
+        ta.disabled = false;
+        if (cb) cb({ ok: false, stdout: '' });
+      }
+    }
+
+    function grade() {
+      var mode = check.mode || 'exit_zero';
+      var want = (check.expected !== undefined) ? String(check.expected) : String(expected);
+      var ok;
+      if (mode === 'exit_zero') ok = lastRunOk;
+      else if (mode === 'empty') ok = lastOutput.trim() === '';
+      else if (mode === 'equals') ok = lastOutput.trim() === want.trim();
+      else ok = lastOutput.indexOf(want) !== -1;
+      telemetry({ lesson_id: lessonId, ev: 'code_check', widget: widgetId, ok: ok, mode: mode });
+      saveWidget(lessonId, widgetId, 'code_editor',
+        { passed: ok, code: ta.value, last_output: lastOutput }, function () {});
+      if (ok) {
+        feedback.textContent = check.feedback_ok || '✓ ¡Correcto! La salida es la esperada.';
+        feedback.className = 'widget-feedback ok';
+        playFile(audio.feedback_ok);
+        if (promptBox) promptBox.hidden = false;
+      } else {
+        feedback.textContent = check.feedback_ko || 'Aún no: compara tu salida con la esperada y vuelve a intentarlo.';
+        feedback.className = 'widget-feedback ko';
+        playFile(audio.feedback_ko);
+      }
+    }
+
+    function doCheck() {
+      if (!ran) {
+        runCode(function (res) { showRun(res); grade(); });
+      } else {
+        grade();
+      }
+    }
+
+    root.querySelector('[data-code-run]').addEventListener('click', function () {
+      runCode(function () {});
+    });
+
+    root.querySelector('[data-code-check]').addEventListener('click', function () {
+      doCheck();
+    });
+
+    root.querySelector('[data-code-hint]').addEventListener('click', function () {
+      hintBox.hidden = !hintBox.hidden;
+      if (!hintBox.hidden) playFile(audio.hint);
+      telemetry({ lesson_id: lessonId, ev: 'code_hint', widget: widgetId });
+    });
+
+    root.querySelector('[data-code-save]').addEventListener('click', function () {
+      saveWidget(lessonId, widgetId, 'code_editor',
+        { code: ta.value, last_output: lastOutput }, function (ok) {
+          feedback.textContent = ok ? '✓ Código guardado.' : 'No se pudo guardar el código.';
+          feedback.className = 'widget-feedback' + (ok ? ' ok' : ' ko');
+        });
+    });
+
+    root.querySelector('[data-code-reset]').addEventListener('click', function () {
+      ta.value = starter;
+      ran = false;
+      lastOutput = '';
+      lastRunOk = false;
+      stdoutEl.textContent = '';
+      stderrEl.textContent = '';
+      stderrEl.hidden = true;
+      outBox.hidden = true;
+      hintBox.hidden = true;
+      if (promptBox) promptBox.hidden = true;
+      feedback.textContent = 'Código reiniciado al estado inicial.';
+      feedback.className = 'widget-feedback';
+      syncHighlight();
+    });
+
+    var promptSave = root.querySelector('[data-code-prompt-save]');
+    if (promptSave && promptBox) {
+      promptSave.addEventListener('click', function () {
+        var sel = promptBox.querySelector('input[name="code-answer"]:checked');
+        if (!sel) {
+          feedback.textContent = 'Elige una de las opciones antes de continuar.';
+          feedback.className = 'widget-feedback';
+          return;
+        }
+        var idx = parseInt(sel.value, 10);
+        var correctIdx = parseInt(root.dataset.promptCorrect || '-1', 10);
+        var ok = idx === correctIdx;
+        saveWidget(lessonId, widgetId, 'code_editor_prompt', { answer: idx, correct: ok }, function () {});
+        telemetry({ lesson_id: lessonId, ev: 'code_prompt', widget: widgetId, answer: idx, correct: ok });
+        if (ok) {
+          feedback.textContent = '✓ ¡Exacto! Has cerrado el ejercicio.';
+          feedback.className = 'widget-feedback ok';
+          playFile(audio.prompt_ok);
+        } else {
+          feedback.textContent = 'Piénsalo de nuevo: observa la salida y responde.';
+          feedback.className = 'widget-feedback ko';
+          playFile(audio.prompt_ko);
+        }
+      });
+    }
+
+    ta.value = starter;
+    ta.addEventListener('input', syncHighlight);
+    ta.addEventListener('scroll', syncScroll);
+    syncHighlight();
+  }
+
   /* ------------------------------------------------------------------
      Arranque: los widgets viven dentro del deck reveal.js, pero el evento
      'ready' puede haberse disparado antes de que este script (defer) corra.
@@ -987,6 +1250,12 @@
         if (w.dataset.widgetInit) return;
         w.dataset.widgetInit = '1';
         init(w);
+        // Cualquier interacción real dentro del widget (clic, teclado,
+        // escritura) marca el engagement que el deck lee al abandonar la
+        // slide (widget_engage vs widget_ignore, §8.8 SKILL.md).
+        ['pointerdown', 'keydown', 'input'].forEach(function (type) {
+          w.addEventListener(type, function () { engage(w); });
+        });
       });
     }
     once('[data-widget="canvas"]', initCanvas);
@@ -995,6 +1264,7 @@
     once('[data-widget="hefferline"]', initHefferline);
     once('[data-widget="probe"]', initProbe);
     once('[data-widget="satiation"]', initSatiation);
+    once('[data-widget="code_editor"]', initCodeEditor);
   }
 
   function boot() {

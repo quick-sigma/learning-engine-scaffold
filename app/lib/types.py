@@ -31,3 +31,15 @@ class WidgetState(BaseModel):
 
     ev: str = "widget"
     state: dict = Field(default_factory=dict)
+
+
+class RunCodePayload(BaseModel):
+    """Código enviado al editor vivo del widget `code_editor` (programación
+    e IA). Se ejecuta en el sandbox de `lib/runner.py` y el resultado se
+    devuelve como JSON (fetch, no HTMX)."""
+
+    lesson_id: str
+    widget: str = "code"
+    slide: str = ""
+    language: str = "python"
+    code: str = ""

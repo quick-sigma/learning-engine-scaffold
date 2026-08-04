@@ -657,6 +657,7 @@ a:hover { text-decoration-thickness: 2px; }
   margin: 0 auto var(--sp-4) !important;
 }
 .reveal .stage-tag[data-stage="challenge"]      { --stage-color: #fb923c; }
+.reveal .stage-tag[data-stage="contexto"]       { --stage-color: #94a3b8; }
 .reveal .stage-tag[data-stage="prediction"]     { --stage-color: #a78bfa; }
 .reveal .stage-tag[data-stage="experiment"]     { --stage-color: #22d3ee; }
 .reveal .stage-tag[data-stage="observation"]    { --stage-color: #38bdf8; }
