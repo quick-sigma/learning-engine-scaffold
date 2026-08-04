@@ -143,6 +143,8 @@
         gnode.setAttribute('class', 'canvas-node' + (n === selectedNode ? ' selected' : ''));
         gnode.setAttribute('data-node-id', n.id);
         gnode.setAttribute('tabindex', '0');
+        gnode.setAttribute('role', 'button');
+        gnode.setAttribute('aria-label', n.label);
 
         var circle = svgNS('circle');
         circle.setAttribute('r', 34);
@@ -183,6 +185,7 @@
       });
       gnode.addEventListener('keydown', function (ev) {
         if (ev.key === 'Delete' || ev.key === 'Backspace') { removeNode(n); }
+        else if (ev.key === 'Enter' || ev.key === ' ') { ev.preventDefault(); openNodeMenu(ev, n); }
       });
     }
 
@@ -191,8 +194,11 @@
       menu = document.createElement('div');
       menu.setAttribute('class', 'canvas-menu');
       var rect = wrap.getBoundingClientRect();
-      menu.style.left = (ev.clientX - rect.left) + 'px';
-      menu.style.top = (ev.clientY - rect.top) + 'px';
+      var fromKeyboard = !(ev && typeof ev.clientX === 'number');
+      var px = fromKeyboard ? toScreen(n).x : ev.clientX - rect.left;
+      var py = fromKeyboard ? toScreen(n).y : ev.clientY - rect.top;
+      menu.style.left = px + 'px';
+      menu.style.top = py + 'px';
 
       RELATION_LABELS.forEach(function (rel) {
         var b = document.createElement('button');
@@ -220,6 +226,7 @@
       menu.appendChild(del);
 
       wrap.appendChild(menu);
+      if (fromKeyboard && menu.firstChild) menu.firstChild.focus();
     }
 
     function closeMenu() { if (menu && menu.parentNode) menu.parentNode.removeChild(menu); menu = null; }
