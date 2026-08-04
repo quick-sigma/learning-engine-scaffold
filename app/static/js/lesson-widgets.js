@@ -88,6 +88,12 @@
     var drag = null;
     var saved = false;
 
+    // Relaciones disponibles: las configuradas en el widget (data-relations)
+    // si existen; si no, las etiquetas por defecto del scaffold.
+    var widgetRelations = [];
+    try { widgetRelations = JSON.parse(root.dataset.relations || '[]'); } catch (e) { widgetRelations = []; }
+    var relationLabels = widgetRelations.length ? widgetRelations : RELATION_LABELS;
+
     function svgNS(name) { return document.createElementNS(NS, name); }
 
     function toScreen(n) {
@@ -200,7 +206,7 @@
       menu.style.left = px + 'px';
       menu.style.top = py + 'px';
 
-      RELATION_LABELS.forEach(function (rel) {
+      relationLabels.forEach(function (rel) {
         var b = document.createElement('button');
         b.type = 'button';
         b.textContent = '→ ' + rel;
