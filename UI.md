@@ -245,6 +245,23 @@ Cada slide del bucle de descubrimiento (§7 SKILL.md) debe cumplir:
   Salida en `.code-output` (stdout `--deck-text`, stderr `--ko` sobre
   `rgba(248,113,113,.06)`). `aria-live="polite"` en salida y feedback;
   `:focus-visible` = ring `#a5b4fc`.
+- **Timeline (`.timeline-*`)**: línea de hitos con predicción del tipo de cada
+  hito antes de revelarlo (afirmación/demostración/engaño). Nodos en `ol` con
+  botones `.timeline-dot` (`aria-label` por estado), tarjeta del nodo activo,
+  opciones `.timeline-opt` (picked/correct/incorrect/revealed-correct),
+  feedback `aria-live` con autocorrección, pista y reinicio. Estado por texto
+  en `timeline-status`, nunca solo color.
+- **Niveles de realidad (`.levels-*`)**: jerarquía de niveles de un sistema
+  bajo doble control (Polanyi). Pila `.levels-stack` de tarjetas
+  `.levels-card` ordenables por teclado (botones ↑/↓ en `.levels-moves`;
+  top = nivel más alto, marcado `.is-top`; bottom = más básico, `.is-bottom`).
+  Por nivel: `.levels-q` con radio `.quiz-opt` para ley, condición de frontera
+  y no-derivación; chip `.levels-status` con etiqueta de texto (pendiente /
+  ✓ listo / ↻ por revisar, nunca solo color). Evaluador global
+  (`.levels-actions` → «Comprobar jerarquía») que guía la autocorrección
+  señalando el nivel donde falla, sin dar la respuesta; pregunta final
+  `.levels-final` (`.levels-q` + «Responder») sobre el doble control. Feedback
+  `aria-live`, pista y reinicio.
 
 ### 8.1 Narración obligatoria de widgets (regla dura, SKILL.md §6.3/§6.5)
 
@@ -254,7 +271,11 @@ el debate socrático:
   en debate la `thesis`, el `opening`, cada `turn.agent` y cada
   `turn.options[M]`, y en el **editor de código** `task`, `instructions`,
   `hint`, `feedback_ok`/`feedback_ko`, y si hay pregunta `prompt` y cada
-  `prompt_options[M]`.
+  `prompt_options[M]`. En **levels_reality**: `task`, `instr`, `hint`, por
+  nivel `name` (nombre + texto), `law_prompt` + `law_options[M]`,
+  `boundary_prompt` + `boundary_options[M]`, `derivable_prompt`,
+  `feedback_ok`/`feedback_ko`, las opciones compartidas `derivable_options[2]`
+  (Sí/No) y la pregunta final `prompt` + `options[M]` + `feedback_ok`/`ko`.
 - El widget declara su audio en el mapa `audio` de su configuración
   (`slides.json`), con nombres `w-<slideid>-*`.
 - El reproductor `.audio-play` se renderiza **junto a cada bloque**; en el

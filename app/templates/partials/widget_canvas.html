@@ -9,11 +9,25 @@
      data-task="{{ widget.task or '' }}"
      data-hint="{{ widget.hint or '' }}">
 
+  {% if widget.task %}
+  <p class="instructions canvas-task">{{ widget.task }}
+    {% if widget.audio and widget.audio.task %}
+      {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ widget.audio.task %}
+      {% include "partials/audio_player.html" %}
+    {% endif %}
+  </p>
+  {% endif %}
+
   <div class="widget-toolbar">
     <button type="button" class="btn btn-sm btn-secondary" data-canvas-add>+ Concepto</button>
     <button type="button" class="btn btn-sm" data-canvas-save>Guardar lienzo</button>
     <button type="button" class="btn btn-sm btn-ghost" data-canvas-clear>Limpiar</button>
     <span class="widget-hint muted">Arrastra nodos · clic en 2 nodos para conectar</span>
+    {% if widget.hint and widget.audio and widget.audio.hint %}
+      {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ widget.audio.hint %}
+      {% set compact = true %}
+      {% include "partials/audio_player.html" %}
+    {% endif %}
   </div>
 
   <div class="canvas-wrap" data-canvas-wrap>

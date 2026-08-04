@@ -110,12 +110,25 @@ def self_explain(request: Request, lesson_id: str, slide: str = Form(...), text:
 
 
 @router.post("/api/quiz/{lesson_id}", response_class=HTMLResponse)
-def quiz(request: Request, lesson_id: str, slide: str = Form(...), answer: str = Form(...)):
+def quiz(
+    request: Request,
+    lesson_id: str,
+    slide: str = Form(...),
+    answer: str = Form(...),
+    qindex: str | None = Form(None),
+):
     lesson = fs.load_lesson(lesson_id)
-    correct = bool(lesson) and fs.check_quiz_answer(lesson, slide, answer)
+    correct = bool(lesson) and fs.check_quiz_answer(lesson, slide, answer, qindex)
     fs.append_response(
         lesson_id,
-        {"ev": "quiz", "slide": slide, "answer": answer, "correct": correct, "ts": fs.now_ms()},
+        {
+            "ev": "quiz",
+            "slide": slide,
+            "qindex": qindex,
+            "answer": answer,
+            "correct": correct,
+            "ts": fs.now_ms(),
+        },
     )
     accuracy = fs.recompute_accuracy(lesson_id)
     return templates.TemplateResponse(

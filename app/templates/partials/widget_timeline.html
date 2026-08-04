@@ -1,0 +1,50 @@
+{% if widget %}
+<div class="widget timeline-widget"
+     data-widget="timeline"
+     data-widget-id="{{ slide.id }}"
+     data-lesson="{{ lesson_id }}"
+     data-nodes='{{ widget.nodes | default([]) | tojson }}'
+     data-options='{{ widget.options | default([]) | tojson }}'
+     data-truth-index='{{ widget.truth_index | default({"affirmation":0,"demonstration":1,"deception":2}) | tojson }}'
+     data-audio='{{ widget.audio | default({}) | tojson }}'
+     data-task="{{ widget.task or '' }}"
+     data-hint="{{ widget.hint or '' }}">
+
+  {% if widget.task %}
+    <p class="timeline-task">{{ widget.task }}</p>
+    {% if widget.audio and widget.audio.task %}
+      {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ widget.audio.task %}
+      {% include "partials/audio_player.html" %}
+    {% endif %}
+  {% endif %}
+
+  {% if widget.instructions %}
+    <p class="instructions timeline-instr">{{ widget.instructions }}</p>
+    {% if widget.audio and widget.audio.instr %}
+      {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ widget.audio.instr %}
+      {% include "partials/audio_player.html" %}
+    {% endif %}
+  {% endif %}
+
+  <ol class="timeline" data-timeline role="list"
+      aria-label="Línea de tiempo del descubrimiento: hitos en orden cronológico"></ol>
+
+  <div class="timeline-stage">
+    <div class="timeline-node-card" data-timeline-card tabindex="-1"></div>
+
+    <div class="timeline-options" data-timeline-options role="group"
+         aria-label="Predice el tipo de hito antes de revelarlo"></div>
+
+    <div class="timeline-actions">
+      <button type="button" class="btn btn-secondary" data-timeline-reveal hidden>Revelar</button>
+      <button type="button" class="btn" data-timeline-next hidden>Siguiente</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-timeline-prev hidden>← Anterior</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-timeline-hint hidden>Pista</button>
+      <button type="button" class="btn btn-ghost btn-sm" data-timeline-reset hidden>Reiniciar</button>
+      <span class="timeline-score" data-timeline-score aria-live="polite"></span>
+    </div>
+  </div>
+
+  <div class="widget-feedback" data-timeline-feedback aria-live="polite"></div>
+</div>
+{% endif %}

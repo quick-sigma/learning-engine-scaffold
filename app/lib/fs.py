@@ -116,8 +116,12 @@ def load_lesson(lesson_id: str) -> dict[str, Any] | None:
 
 def _walk_audio_files(node: Any) -> list[str]:
     """Recorre un mapa `audio` de widget (puede tener listas anidadas como
-    `turns`/`turns_options` del debate o `prompt_options` del editor de
-    código) y devuelve los nombres de MP3 que referencia (regla dura §6.5)."""
+    `turns`/`turns_options` del debate, `prompt_options` del editor de
+    código, `levels[N].{law_options,boundary_options}` de levels_reality,
+    `nodes`/`nodes_options` del timeline…) y devuelve los nombres de MP3 que
+    referencia (regla dura §6.5). Cobertura genérica: cualquier widget nuevo
+    que declare su mapa `audio` con nombres `*.mp3` queda validado por
+    `lesson_audio_status` sin tocar esta función."""
     out: list[str] = []
     if isinstance(node, dict):
         for v in node.values():
@@ -150,8 +154,10 @@ def lesson_audio_status(lesson_id: str, lesson: dict[str, Any] | None = None) ->
             name = slide.get(field)
             if name and not (audio_dir / name).is_file():
                 missing.append(f"{slide.get('id', '?')}/{field}: {name}")
-        # audio anidado de predicción, experimento, self-explanation y quiz
-        for sub_key in ("prediction", "experiment", "self_explain", "quiz"):
+        # audio anidado de predicción, experimento, self-explanation y quiz.
+        # El quiz puede ser un dict (una pregunta) o una lista de dicts
+        # (varias preguntas, p. ej. el quiz final de lesson-008).
+        for sub_key in ("prediction", "experiment", "self_explain"):
             sub = slide.get(sub_key)
             if isinstance(sub, dict):
                 name = sub.get("audio")
@@ -164,7 +170,25 @@ def lesson_audio_status(lesson_id: str, lesson: dict[str, Any] | None = None) ->
                 for i, opt in enumerate(sub.get("options_audio") or []):
                     if opt and not (audio_dir / opt).is_file():
                         missing.append(f"{slide.get('id', '?')}/{sub_key}.opcion[{i}]: {opt}")
-        # audio de widgets (mapa `audio` de cada widget, §6.5 — regla dura)
+        # El quiz puede ser un dict (una pregunta) o una lista de dicts
+        # (varias preguntas, p. ej. el quiz final de lesson-008).
+        qz = slide.get("quiz")
+        quiz_items = qz if isinstance(qz, list) else ([qz] if isinstance(qz, dict) else [])
+        for qi, sub in enumerate(quiz_items):
+            if not isinstance(sub, dict):
+                continue
+            name = sub.get("audio")
+            if name and not (audio_dir / name).is_file():
+                missing.append(f"{slide.get('id', '?')}/quiz[{qi}].audio: {name}")
+            name = sub.get("feedback_audio")
+            if name and not (audio_dir / name).is_file():
+                missing.append(f"{slide.get('id', '?')}/quiz[{qi}].feedback: {name}")
+            for i, opt in enumerate(sub.get("options_audio") or []):
+                if opt and not (audio_dir / opt).is_file():
+                    missing.append(f"{slide.get('id', '?')}/quiz[{qi}].opcion[{i}]: {opt}")
+        # audio de widgets (mapa `audio` de cada widget, §6.5 — regla dura).
+        # Recorrido genérico recursivo: cubre debate (thesis/opening/turns/
+        # turns_options), canvas (task/hint), code_editor (prompt_options)…
         widget = slide.get("widget")
         if isinstance(widget, dict):
             for fname in _walk_audio_files(widget.get("audio")):
@@ -188,11 +212,22 @@ def lesson_audio_path(lesson_id: str, filename: str) -> Path | None:
     return p
 
 
-def check_quiz_answer(lesson: dict[str, Any], slide_id: str, answer: str) -> bool:
+def check_quiz_answer(
+    lesson: dict[str, Any], slide_id: str, answer: str, qindex: str | None = None
+) -> bool:
     for slide in lesson.get("slides", []):
         if slide.get("id") != slide_id or "quiz" not in slide:
             continue
-        correct_idx = slide["quiz"].get("correct")
+        quiz = slide["quiz"]
+        # quiz puede ser dict (1 pregunta) o lista (varias preguntas)
+        if isinstance(quiz, list):
+            try:
+                idx = int(qindex) if qindex is not None else 0
+                correct_idx = quiz[idx].get("correct")
+            except (IndexError, TypeError, ValueError):
+                return False
+        else:
+            correct_idx = quiz.get("correct")
         return answer == str(correct_idx)
     return False
 

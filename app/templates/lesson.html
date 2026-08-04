@@ -64,20 +64,29 @@
           {% endif %}
 
           {% if slide.quiz %}
+            {% if slide.quiz is mapping %}
+              {% set quiz_list = [slide.quiz] %}
+            {% else %}
+              {% set quiz_list = slide.quiz %}
+            {% endif %}
+            {% for qitem in quiz_list %}
             <form class="quiz" hx-post="/api/quiz/{{ lesson_id }}"
-                  hx-target="#quiz-result-{{ slide.id }}" hx-swap="innerHTML">
+                  hx-target="#quiz-result-{{ slide.id }}-{{ loop.index0 }}" hx-swap="innerHTML">
               <input type="hidden" name="slide" value="{{ slide.id }}">
-              {% if slide.quiz.question %}<p class="quiz-q">{{ slide.quiz.question }}</p>{% endif %}
-              {% if slide.quiz.audio %}
-                {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ slide.quiz.audio %}
+              {% if quiz_list|length > 1 %}
+                <input type="hidden" name="qindex" value="{{ loop.index0 }}">
+              {% endif %}
+              {% if qitem.question %}<p class="quiz-q">{{ qitem.question }}</p>{% endif %}
+              {% if qitem.audio %}
+                {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ qitem.audio %}
                 {% include "partials/audio_player.html" %}
               {% endif %}
-              {% for opt in slide.quiz.options %}
+              {% for opt in qitem.options %}
                 <label class="quiz-opt">
                   <input type="radio" name="answer" value="{{ loop.index0 }}" required>
                   <span>{{ opt }}</span>
-                  {% if slide.quiz.options_audio and slide.quiz.options_audio[loop.index0] %}
-                    {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ slide.quiz.options_audio[loop.index0] %}
+                  {% if qitem.options_audio and qitem.options_audio[loop.index0] %}
+                    {% set audio_src = '/lessons/' ~ lesson_id ~ '/audio/' ~ qitem.options_audio[loop.index0] %}
                     {% set compact = true %}
                     {% include "partials/audio_player.html" %}
                   {% endif %}
@@ -85,9 +94,10 @@
               {% endfor %}
               <div class="quiz-actions">
                 <button type="submit" class="btn">Responder</button>
-                <div id="quiz-result-{{ slide.id }}" class="quiz-result" aria-live="polite"></div>
+                <div id="quiz-result-{{ slide.id }}-{{ loop.index0 }}" class="quiz-result" aria-live="polite"></div>
               </div>
             </form>
+            {% endfor %}
           {% endif %}
 
           {% if slide.widget %}
@@ -106,6 +116,10 @@
               {% include "partials/widget_satiation.html" %}
             {% elif widget.type == "code_editor" %}
               {% include "partials/widget_code_editor.html" %}
+            {% elif widget.type == "timeline" %}
+              {% include "partials/widget_timeline.html" %}
+            {% elif widget.type == "levels_reality" %}
+              {% include "partials/widget_levels_reality.html" %}
             {% endif %}
           {% endif %}
         </section>
