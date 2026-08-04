@@ -513,6 +513,7 @@
     var widgetId = root.dataset.widgetId;
     var turns = JSON.parse(root.dataset.turns || '[]');
     var widgetAudio = JSON.parse(root.dataset.audio || '{}'); // mapa audio §6.5
+    var endText = root.dataset.end || 'Fin del debate. Vuelve a la Reflection y anota lo que cambió en tu posición.';
     var transcript = root.querySelector('[data-debate]');
     var feedback = root.querySelector('[data-debate-feedback]');
     var ti = 0;
@@ -566,8 +567,7 @@
 
     function renderTurn() {
       if (ti >= turns.length) {
-        addAgent('Fin del debate. Vuelve a la Reflection y anota lo que cambió en tu posición.',
-          widgetAudio.end);
+        addAgent(endText, widgetAudio.end);
         feedback.textContent = '✓ Debate completado.';
         feedback.className = 'widget-feedback ok';
         saveWidget(lessonId, widgetId, 'debate', { complete: true }, function () {});
@@ -587,13 +587,18 @@
           var box = document.createElement('div');
           box.setAttribute('class', 'debate-options');
           prompts.forEach(function (opt, i) {
+            // a11y: el reproductor de audio es HERMANO del botón de opción
+            // (patrón .debate-opt-row), nunca un <button> anidado dentro de
+            // otro <button> (HTML inválido: pierde foco por teclado y el clic
+            // burbujea al padre, avanzando el turno al solo escuchar).
+            var row = document.createElement('div');
+            row.setAttribute('class', 'debate-opt-row');
             var b = document.createElement('button');
             b.type = 'button';
             b.setAttribute('class', 'debate-opt');
             var bText = document.createElement('span');
             bText.textContent = opt;
             b.appendChild(bText);
-            if (turnOptsAudio && turnOptsAudio[i]) b.appendChild(audioButton(turnOptsAudio[i]));
             b.addEventListener('click', function () {
               addStudent(bText.textContent);
               telemetry({ lesson_id: lessonId, ev: 'debate_response', widget: widgetId, turn: ti, option: i, text: bText.textContent });
@@ -601,7 +606,9 @@
               ti = (resp && typeof resp.next === 'number') ? resp.next : ti + 1;
               renderTurn();
             });
-            box.appendChild(b);
+            row.appendChild(b);
+            if (turnOptsAudio && turnOptsAudio[i]) row.appendChild(audioButton(turnOptsAudio[i]));
+            box.appendChild(row);
           });
           wrap.appendChild(box);
         } else {
